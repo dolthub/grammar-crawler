@@ -152,6 +152,10 @@ public class MySQLGrammarCrawler {
                         crawlContext.parentPath.addAll(currentContext.parentPath);
                     }
                 }
+
+                // If the crawl strategy didn't select any choice to crawl, abort the current crawl path
+                if (firstChoice) currentContext.abort();
+
                 return;
             } else {
                 CrawlContext newContext = crawler.continueCrawl(currentContext, group.elements.get(0));

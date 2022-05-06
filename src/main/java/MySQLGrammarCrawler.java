@@ -12,7 +12,15 @@ public class MySQLGrammarCrawler {
     public static void main(String[] args) throws Exception {
         ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
 
-        generateCreateTableStatements();
+//        generateCreateTableStatements();
+        generateAllDropStatements();
+    }
+
+    private static void generateAllDropStatements() {
+        Rules.Rule rule = ruleMap.get("dropStatement");
+        crawlStrategy = new CrawlStrategies.FullCrawl();
+        crawler.setStatementWriter(new StdOutStatementWriter());
+        crawler.startCrawl(rule);
     }
 
     private static void generateCreateTableStatements() {
@@ -26,8 +34,8 @@ public class MySQLGrammarCrawler {
 
         // Disabling these to limit crawler's output for CreateTable
         rulesToSkip.add("procedureAnalyseClause");
-        rulesToSkip.add("expr");
-        rulesToSkip.add("queryExpression");
+//        rulesToSkip.add("expr");
+//        rulesToSkip.add("queryExpression");
         rulesToSkip.add("queryExpressionOrParens");
         rulesToSkip.add("partitionClause");
         rulesToSkip.add("createTableOptions");
@@ -49,13 +57,6 @@ public class MySQLGrammarCrawler {
         Rules.Element element = currentContext.elementToProcess;
         TemplateBuffer generatedTemplate = currentContext.generatedTemplate;
 
-//        if (true) {
-//            long heapSize = Runtime.getRuntime().totalMemory();
-//            long heapMaxSize = Runtime.getRuntime().maxMemory();
-//            System.out.println("Max Heap: " + heapMaxSize);
-//            System.out.println("Current Heap: " + heapSize);
-//        }
-
         if (element.isOptional()) {
             if (!currentContext.includeOptional) {
                 // Here is where we fork off another separate crawler thread, including its own buffer to track its unique output
@@ -71,7 +72,6 @@ public class MySQLGrammarCrawler {
                     crawlContext.parentPath.addAll(futureElementContext.parentPath);
                 } else {
                     // At this point, we know the current template is fully complete and done generating
-//                    System.out.println(" : " + currentContext.generatedTemplate);
                     crawler.statementCompleted(currentContext.generatedTemplate);
                 }
 
@@ -198,8 +198,7 @@ public class MySQLGrammarCrawler {
 
         // Queue up the next element to be processed from our stack
         if (currentContext.futureElements.isEmpty()) {
-            // At this point, we know a rule should be fully complete
-//            System.out.println(" : " + currentContext.generatedTemplate);
+            // At this point, we know a template should be fully complete
             crawler.statementCompleted(currentContext.generatedTemplate);
         } else {
             CrawlContext.FutureElementContext futureElementContext = currentContext.futureElements.pop();

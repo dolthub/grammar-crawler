@@ -27,7 +27,7 @@ public class TemplateBuffer {
         for (MySQLGrammarCrawler.Element e : elements) {
             // TODO: Should we bother translating here in toString, or model a separate step after template
             //       creation that reifies the template into a real statement?
-            String translated = MySQLGrammarCrawler.StatementReifier.translateSymbol(e.getName());
+            String translated = StatementReifier.translateSymbol(e.getName());
             strings.add(translated);
         }
         return String.join(" ", strings) + ";";

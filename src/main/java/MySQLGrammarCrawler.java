@@ -45,19 +45,17 @@ public class MySQLGrammarCrawler {
         crawler.startCrawl(rule);
 
         System.out.println();
-        System.out.println("Generated Templates:");
-        String statementPrefix = "";
 
         // TODO: We could probably get rid of TemplateManager now that we have a signal when a templatebuffer
         //       is complete and we could feed the generated templates to the StatementWriter dynamically as
         //       they finish.
-
 
 //        StatementWriter writer = new StdOutStatementWriter();
         StatementWriter writer = new SQLLogicProtoStatementWriter("sqllogic-test.proto");
 
         // Plug in valid identifiers
         // TODO: This should be extracted into a separate, configurable interface
+        String statementPrefix = "";
         for (TemplateBuffer generatedTemplate : crawler.templateBufferManager.generatedTemplates) {
             if (generatedTemplate.aborted) continue;
 
@@ -171,6 +169,10 @@ public class MySQLGrammarCrawler {
         } else if (element instanceof ElementGroup) {
             ElementGroup group = (ElementGroup) element;
 
+            // TODO: This logic for translating an ElementGroup into a list of choices is super hacky.
+            //       The parser should take care of this when it analyzes the ANTLR grammar and return
+            //       Choice instead of ElementGroup so that we don't have to do any of this here.
+            //       But... this is working now, and not the highest priority to fix.
             List<Element> choices = new ArrayList<>();
             ElementGroup currentGroup = new ElementGroup();
             boolean isChoice = false;

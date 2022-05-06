@@ -17,14 +17,12 @@ public class MySQLGrammarCrawler {
 
     private static void generateCreateTableStatements() {
         Rules.Rule rule = ruleMap.get("createTable");
-//        rule = ruleMap.get("dropUndoTablespace");
-//        rule = ruleMap.get("dropStatement");
 
         // Configure crawling rules...
         // Skipping these rules to simplify the output and to make it easier to plug in identifier tokens
         rulesToSkip.add("dotIdentifier");
-        rulesToSkip.add("identifierKeyword");
-        rulesToSkip.add("fieldIdentifier");
+//        rulesToSkip.add("identifierKeyword");
+//        rulesToSkip.add("fieldIdentifier");
 
         // TODO: Disabling these to make crawler work for CreateTable without blowing up the heap
         rulesToSkip.add("procedureAnalyseClause");

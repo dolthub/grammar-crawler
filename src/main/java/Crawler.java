@@ -42,7 +42,13 @@ public class Crawler {
 
     private void start() {
         while (!contextsToProcess.isEmpty()) {
-            MySQLGrammarCrawler.processElement(contextsToProcess.remove(0));
+            CrawlContext ctx = contextsToProcess.remove(0);
+
+            // If a crawl context was aborted while in process, don't process any other
+            // elements contributing to that generated template.
+            if (ctx.isAborted()) continue;
+
+            MySQLGrammarCrawler.processElement(ctx);
         }
     }
 }

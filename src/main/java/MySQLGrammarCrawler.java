@@ -132,10 +132,6 @@ public class MySQLGrammarCrawler {
         Element element = currentContext.elementToProcess;
         TemplateBuffer generatedTemplate = currentContext.generatedTemplate;
 
-        // If a template was aborted while in process, don't process any other
-        // elements contributing to that generated template.
-        if (generatedTemplate.aborted) return;
-
 //        if (DEBUG) {
 //            long heapSize = Runtime.getRuntime().totalMemory();
 //            long heapMaxSize = Runtime.getRuntime().maxMemory();
@@ -222,14 +218,14 @@ public class MySQLGrammarCrawler {
             Rule rule = ruleMap.get(ruleref.getName());
 
             if (rulesToSkip.contains(rule.name)) {
-                generatedTemplate.abort(); // TODO: Should this be a method on the current context?
+                currentContext.abort();
                 return;
             }
 
             if (currentContext.parentPath.contains(rule.name)) {
                 // TODO: We need better control of cycles... for example, instead
                 //       of restricting any cycles, we may want to allow one cycle, but not two, per rule.
-                generatedTemplate.abort();
+                currentContext.abort();
                 return;
             }
 

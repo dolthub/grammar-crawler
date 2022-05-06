@@ -18,6 +18,23 @@ class CrawlContext {
         this.generatedTemplate = generatedTemplate;
     }
 
+    /**
+     * Aborts processing for the current crawl path. When a crawl path is aborted, any partial template being built
+     * from the current path will be removed and not included in the final crawl results.
+     */
+    public void abort() {
+        generatedTemplate.abort();
+    }
+
+    /**
+     * Returns true if the current crawl path has been aborted and should not be processed any further.
+     *
+     * @return true if the current crawl path has been aborted and should not be processed any further.
+     */
+    public boolean isAborted() {
+        return generatedTemplate.aborted;
+    }
+
     public static class FutureElementContext {
         public MySQLGrammarCrawler.Element element;
         public List<String> parentPath = new ArrayList<>();

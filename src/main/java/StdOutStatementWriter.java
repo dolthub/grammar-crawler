@@ -1,3 +1,6 @@
+import java.text.NumberFormat;
+import java.util.Locale;
+
 public class StdOutStatementWriter implements StatementWriter {
     private int statementCount;
 
@@ -10,6 +13,7 @@ public class StdOutStatementWriter implements StatementWriter {
     @Override
     public void finished() {
         System.out.println();
-        System.out.println("Total Statements: " + statementCount);
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
+        System.out.println("Total Statements: " + numberFormat.format(statementCount));
     }
 }

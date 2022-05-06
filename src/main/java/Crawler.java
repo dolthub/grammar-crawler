@@ -2,11 +2,24 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Crawler {
-    // TODO: We could probably get rid of TemplateManager now that we have a signal when a templatebuffer
-    //       is complete and we could feed the generated templates to the StatementWriter dynamically as
-    //       they finish (or perhaps feed them through first to a reifier to plug in valid identifiers).
-    public TemplateBufferManager templateBufferManager = new TemplateBufferManager();
     public List<CrawlContext> contextsToProcess = new LinkedList<>();
+    private StatementWriter writer;
+    private String prefix;
+
+    private TemplateStats templateStats = new TemplateStats();
+
+    private class TemplateStats {
+        public int abortedTemplates = 0;
+        public int completedTemplates = 0;
+    }
+
+    public void setStatementWriter(StatementWriter writer) {
+        this.writer = writer;
+    }
+
+    public void setStatementPrefix(String prefix) {
+        this.prefix = prefix;
+    }
 
     public void startCrawl(Rules.Rule rule) {
         for (Rules.Alternative alternative : rule.alternatives) {
@@ -19,7 +32,10 @@ public class Crawler {
     public CrawlContext forkCrawl(CrawlContext ctx, Rules.Element elementToProcess) {
         if (ctx == null) ctx = new CrawlContext(null, new TemplateBuffer());
 
-        TemplateBuffer newTemplateBuffer = templateBufferManager.forkTemplate(ctx.generatedTemplate.elements);
+        // Fork off a new TemplateBuffer to write to, so we don't corrupt the previous crawler path
+        TemplateBuffer newTemplateBuffer = new TemplateBuffer();
+        newTemplateBuffer.addElements(ctx.generatedTemplate.elements);
+
         CrawlContext newContext = new CrawlContext(elementToProcess, newTemplateBuffer);
         newContext.futureElements.addAll(ctx.futureElements);
         contextsToProcess.add(0, newContext);
@@ -35,33 +51,6 @@ public class Crawler {
         return newContext;
     }
 
-    public void writeStatements(StatementWriter writer, String statementPrefix) {
-        // Plug in valid identifiers and send reified statements out to the statement writer
-        for (TemplateBuffer generatedTemplate : templateBufferManager.generatedTemplates) {
-            if (generatedTemplate.aborted) continue;
-
-            String s = statementPrefix + generatedTemplate;
-
-            // TODO: This should be extracted into a separate, configurable interface
-            s = s.replaceFirst("foo", StatementReifier.randomNewTableName());
-            int i = 1;
-            while (s.contains("foo")) {
-                s = s.replaceFirst("foo", "c" + i);
-                i++;
-            }
-
-            writer.write(s);
-        }
-    }
-
-    public void printAllTemplates(String statementPrefix) {
-        templateBufferManager.printAllTemplates(statementPrefix);
-    }
-
-    public void printTemplateStats() {
-        templateBufferManager.printTemplateStats();
-    }
-
     private void start() {
         while (!contextsToProcess.isEmpty()) {
             CrawlContext ctx = contextsToProcess.remove(0);
@@ -72,5 +61,22 @@ public class Crawler {
 
             MySQLGrammarCrawler.processElement(ctx);
         }
+    }
+
+    public void statementCompleted(TemplateBuffer generatedTemplate) {
+        templateStats.completedTemplates++;
+
+        // Plug in valid identifiers and send reified statements out to the statement writer
+        String s = prefix + generatedTemplate;
+
+        // TODO: This should be extracted into a separate, configurable interface
+        s = s.replaceFirst("foo", StatementReifier.randomNewTableName());
+        int i = 1;
+        while (s.contains("foo")) {
+            s = s.replaceFirst("foo", "c" + i);
+            i++;
+        }
+
+        writer.write(s);
     }
 }

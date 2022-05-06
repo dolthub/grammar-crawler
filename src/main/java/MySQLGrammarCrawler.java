@@ -35,14 +35,14 @@ public class MySQLGrammarCrawler {
         rulesToSkip.add("spatialIndexOption");
         rulesToSkip.add("fulltextIndexOption");
 
-//        crawlStrategy = new CrawlStrategies.FullCrawlStrategy();
-        crawlStrategy = new CrawlStrategies.RandomCrawlStrategy();
+        crawlStrategy = new CrawlStrategies.FullCrawlStrategy();
+//        crawlStrategy = new CrawlStrategies.RandomCrawlStrategy();
+
+        crawler.setStatementPrefix("CREATE ");
+        crawler.setStatementWriter(new StdOutStatementWriter());
+//        crawler.setStatementWriter(new SQLLogicProtoStatementWriter("sqllogic-test.proto"););
 
         crawler.startCrawl(rule);
-
-        StatementWriter writer = new StdOutStatementWriter();
-//        StatementWriter writer = new SQLLogicProtoStatementWriter("sqllogic-test.proto");
-        crawler.writeStatements(writer, "CREATE ");
     }
 
     public static void processElement(CrawlContext currentContext) {
@@ -72,6 +72,7 @@ public class MySQLGrammarCrawler {
                 } else {
                     // At this point, we know the current template is fully complete and done generating
 //                    System.out.println(" : " + currentContext.generatedTemplate);
+                    crawler.statementCompleted(currentContext.generatedTemplate);
                 }
 
                 // Then return to avoid any processing this optional element on this fork
@@ -142,6 +143,8 @@ public class MySQLGrammarCrawler {
             Rules.RuleRefElement ruleref = (Rules.RuleRefElement) element;
             Rules.Rule rule = ruleMap.get(ruleref.getName());
 
+            // TODO: Instead of just testing contains... we want to have a limit on how many times we recurse through a rule
+            //       but... shouldn't the block below prevent cycles?
             if (rulesToSkip.contains(rule.name)) {
                 currentContext.abort();
                 return;
@@ -197,6 +200,7 @@ public class MySQLGrammarCrawler {
         if (currentContext.futureElements.isEmpty()) {
             // At this point, we know a rule should be fully complete
 //            System.out.println(" : " + currentContext.generatedTemplate);
+            crawler.statementCompleted(currentContext.generatedTemplate);
         } else {
             CrawlContext.FutureElementContext futureElementContext = currentContext.futureElements.pop();
             CrawlContext crawlContext = crawler.continueCrawl(currentContext, futureElementContext.element);

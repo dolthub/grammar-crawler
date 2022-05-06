@@ -4,7 +4,7 @@ import java.util.List;
 public class Crawler {
     public List<CrawlContext> contextsToProcess = new LinkedList<>();
     private StatementWriter writer;
-    private String prefix;
+    private String prefix = "";
 
     private TemplateStats templateStats = new TemplateStats();
 
@@ -27,6 +27,8 @@ public class Crawler {
         }
 
         start();
+
+        writer.finished();
     }
 
     public CrawlContext forkCrawl(CrawlContext ctx, Rules.Element elementToProcess) {

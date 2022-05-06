@@ -11,7 +11,7 @@ class TemplateBufferManager {
         return forkTemplate(null);
     }
 
-    public TemplateBuffer forkTemplate(Collection<MySQLGrammarCrawler.Element> existingContent) {
+    public TemplateBuffer forkTemplate(Collection<Rules.Element> existingContent) {
         TemplateBuffer generatedTemplate = new TemplateBuffer();
         generatedTemplate.addElements(existingContent);
         generatedTemplates.add(generatedTemplate);

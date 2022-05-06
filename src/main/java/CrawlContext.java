@@ -5,7 +5,7 @@ import java.util.Stack;
 class CrawlContext {
     public Stack<FutureElementContext> futureElements = new Stack();
     public TemplateBuffer generatedTemplate;
-    public MySQLGrammarCrawler.Element elementToProcess;
+    public Rules.Element elementToProcess;
 
     // TODO: This could change to something like numberOfTimesToProcess = 0 | 1 | 2;
     public boolean includeOptional = false;
@@ -13,7 +13,7 @@ class CrawlContext {
     public List<String> parentPath = new ArrayList<>();
 
 
-    public CrawlContext(MySQLGrammarCrawler.Element element, TemplateBuffer generatedTemplate) {
+    public CrawlContext(Rules.Element element, TemplateBuffer generatedTemplate) {
         this.elementToProcess = element;
         this.generatedTemplate = generatedTemplate;
     }
@@ -36,10 +36,10 @@ class CrawlContext {
     }
 
     public static class FutureElementContext {
-        public MySQLGrammarCrawler.Element element;
+        public Rules.Element element;
         public List<String> parentPath = new ArrayList<>();
 
-        public FutureElementContext(MySQLGrammarCrawler.Element element) {
+        public FutureElementContext(Rules.Element element) {
             this.element = element;
         }
     }

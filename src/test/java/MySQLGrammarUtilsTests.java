@@ -21,7 +21,7 @@ public class MySQLGrammarUtilsTests {
 
     @Test
     public void testLoadMySQLGrammarRules() throws Exception {
-        Map<String, MySQLGrammarCrawler.Rule> ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
+        Map<String, Rules.Rule> ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
         assertFalse(ruleMap.isEmpty());
         assertTrue(ruleMap.size() > 100);
         assertTrue(ruleMap.containsKey("query"));

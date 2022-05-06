@@ -4,7 +4,7 @@ public class MySQLGrammarCrawler {
 
     private static Set<String> rulesToSkip = new HashSet<>();
 
-    private static Map<String, Rule> ruleMap;
+    private static Map<String, Rules.Rule> ruleMap;
 
     public static Crawler crawler = new Crawler();
 
@@ -14,7 +14,7 @@ public class MySQLGrammarCrawler {
     public static void main(String[] args) throws Exception {
         ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
 
-        Rule rule = null;
+        Rules.Rule rule = null;
         rule = ruleMap.get("createTable");
 //        rule = ruleMap.get("dropUndoTablespace");
 //        rule = ruleMap.get("dropStatement");
@@ -76,7 +76,7 @@ public class MySQLGrammarCrawler {
     }
 
     public static void processElement(CrawlContext currentContext) {
-        Element element = currentContext.elementToProcess;
+        Rules.Element element = currentContext.elementToProcess;
         TemplateBuffer generatedTemplate = currentContext.generatedTemplate;
 
 //        if (true) {
@@ -109,23 +109,23 @@ public class MySQLGrammarCrawler {
             }
         }
 
-        if (element instanceof LiteralElement) {
+        if (element instanceof Rules.LiteralElement) {
             generatedTemplate.addElement(element);
-        } else if (element instanceof ElementGroup) {
-            ElementGroup group = (ElementGroup) element;
+        } else if (element instanceof Rules.ElementGroup) {
+            Rules.ElementGroup group = (Rules.ElementGroup) element;
 
             // TODO: This logic for translating an ElementGroup into a list of choices is super hacky.
             //       The parser should take care of this when it analyzes the ANTLR grammar and return
             //       Choice instead of ElementGroup so that we don't have to do any of this here.
             //       But... this is working now, and not the highest priority to fix.
-            List<Element> choices = new ArrayList<>();
-            ElementGroup currentGroup = new ElementGroup();
+            List<Rules.Element> choices = new ArrayList<>();
+            Rules.ElementGroup currentGroup = new Rules.ElementGroup();
             boolean isChoice = false;
-            for (Element e : group.elements) {
-                if (e instanceof SeparatorElement) {
+            for (Rules.Element e : group.elements) {
+                if (e instanceof Rules.SeparatorElement) {
                     isChoice = true;
                     choices.add(currentGroup);
-                    currentGroup = new ElementGroup();
+                    currentGroup = new Rules.ElementGroup();
                 } else {
                     currentGroup.elements.add(e);
                 }
@@ -137,7 +137,7 @@ public class MySQLGrammarCrawler {
 
             if (isChoice) {
                 boolean firstChoice = true;
-                for (Element e : choices) {
+                for (Rules.Element e : choices) {
                     if (crawlStrategy.shouldCrawl() == false) continue;
 
                     if (firstChoice) {
@@ -157,16 +157,16 @@ public class MySQLGrammarCrawler {
                 CrawlContext newContext = crawler.continueCrawl(currentContext, group.elements.get(0));
                 newContext.parentPath.addAll(currentContext.parentPath);
                 for (int i = group.elements.size() - 1; i >= 1; i--) {
-                    Element e = group.elements.get(i);
+                    Rules.Element e = group.elements.get(i);
                     CrawlContext.FutureElementContext futureElementContext = new CrawlContext.FutureElementContext(e);
                     futureElementContext.parentPath.addAll(currentContext.parentPath);
                     newContext.futureElements.push(futureElementContext);
                 }
                 return;
             }
-        } else if (element instanceof RuleRefElement) {
-            RuleRefElement ruleref = (RuleRefElement) element;
-            Rule rule = ruleMap.get(ruleref.getName());
+        } else if (element instanceof Rules.RuleRefElement) {
+            Rules.RuleRefElement ruleref = (Rules.RuleRefElement) element;
+            Rules.Rule rule = ruleMap.get(ruleref.getName());
 
             if (rulesToSkip.contains(rule.name)) {
                 currentContext.abort();
@@ -183,7 +183,7 @@ public class MySQLGrammarCrawler {
             currentContext.parentPath.add(rule.name);
 
             boolean first = true;
-            for (Alternative alternative : rule.alternatives) {
+            for (Rules.Alternative alternative : rule.alternatives) {
                 if (first) {
                     CrawlContext newContext = crawler.continueCrawl(currentContext, alternative.elements.get(0));
                     newContext.parentPath.addAll(currentContext.parentPath);
@@ -230,149 +230,4 @@ public class MySQLGrammarCrawler {
         }
     }
 
-    public static class Rules {
-        // TODO: Move this up a level, then move all Rule/Alternatives/Elements to this new class?
-    }
-
-    public static class Rule {
-        public String name;
-
-        public List<Alternative> alternatives = new ArrayList<>();
-
-        public Rule(String name) {
-            this.name = name;
-        }
-
-        public Rule() {
-        }
-
-        public void setName(String s) {
-            this.name = s;
-        }
-
-        public String toString() {
-            String s = name + "\n";
-            for (Alternative alternative : alternatives) {
-                s += " - " + alternative;
-                s += "\n";
-            }
-            return s;
-        }
-    }
-
-    public static class Alternative {
-        public List<Element> elements = new ArrayList<>();
-
-        public Alternative() {
-        }
-
-        public String toString() {
-            return elements.toString();
-        }
-    }
-
-    // Ebnf represents a choice of elements
-    public static class Choice extends Element {
-        private List<Element> choices = new ArrayList<>();
-
-        public Choice() {
-            super("CHOICE");
-        }
-
-        public void addElement(Element e) {
-            choices.add(e);
-        }
-
-        public String toString() {
-            String s = "(";
-
-            List<String> choiceStrings = new ArrayList<>();
-            for (Element e : choices) {
-                choiceStrings.add(e.toString());
-            }
-
-            s += String.join(" | ", choiceStrings);
-
-            s += ")";
-            return s;
-        }
-    }
-
-    public static class ElementGroup extends Element {
-        List<Element> elements = new ArrayList<>();
-
-        public ElementGroup() {
-            super("GROUP");
-        }
-
-        public String toString() {
-            List<String> strings = new ArrayList<>();
-            for (Element e : elements) strings.add(e.toString());
-            String s = "(" + String.join(" ", strings) + ")";
-
-            return s + (isOnceOrMore() ? "+" : "") + (isRepeated() ? "*" : "") + (isOptional() ? "?" : "");
-        }
-    }
-
-    public static class Element {
-        private final String s;
-
-        private boolean optional = false;
-        private boolean repeated = false;
-        private boolean onceOrMore;
-
-        public Element(String s) {
-            this.s = s;
-        }
-
-        public void isOptional(boolean b) {
-            optional = b;
-        }
-
-        public boolean isOptional() {
-            return optional;
-        }
-
-        public void isRepeated(boolean b) {
-            repeated = b;
-        }
-
-        public boolean isRepeated() {
-            return repeated;
-        }
-
-        public void isOnceOrMore(boolean b) {
-            onceOrMore = b;
-        }
-
-        public boolean isOnceOrMore() {
-            return onceOrMore;
-        }
-
-        public String getName() {
-            return s;
-        }
-
-        public String toString() {
-            return s + (onceOrMore ? "+" : "") + (repeated ? "*" : "") + (optional ? "?" : "");
-        }
-    }
-
-    public static class SeparatorElement extends Element {
-        public SeparatorElement() {
-            super("|");
-        }
-    }
-
-    public static class RuleRefElement extends Element {
-        public RuleRefElement(String s) {
-            super(s);
-        }
-    }
-
-    public static class LiteralElement extends Element {
-        public LiteralElement(String s) {
-            super(s);
-        }
-    }
 }

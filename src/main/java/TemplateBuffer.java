@@ -4,18 +4,18 @@ import java.util.List;
 
 public class TemplateBuffer {
     boolean aborted = false;
-    List<MySQLGrammarCrawler.Element> elements = new ArrayList<>();
+    List<Rules.Element> elements = new ArrayList<>();
 
     public void abort() {
         aborted = true;
         elements.clear();
     }
 
-    public void addElement(MySQLGrammarCrawler.Element e) {
+    public void addElement(Rules.Element e) {
         elements.add(e);
     }
 
-    public void addElements(Collection<MySQLGrammarCrawler.Element> newElements) {
+    public void addElements(Collection<Rules.Element> newElements) {
         if (newElements == null) return;
         elements.addAll(newElements);
     }
@@ -24,7 +24,7 @@ public class TemplateBuffer {
         if (aborted) return "ABORTED";
 
         List<String> strings = new ArrayList<>();
-        for (MySQLGrammarCrawler.Element e : elements) {
+        for (Rules.Element e : elements) {
             // TODO: Should we bother translating here in toString, or model a separate step after template
             //       creation that reifies the template into a real statement?
             String translated = StatementReifier.translateSymbol(e.getName());

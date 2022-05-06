@@ -22,14 +22,14 @@ public class MySQLGrammarUtils {
         return parser;
     }
 
-    public static Map<String, MySQLGrammarCrawler.Rule> loadMySQLGrammarRules() throws IOException {
+    public static Map<String, Rules.Rule> loadMySQLGrammarRules() throws IOException {
         ANTLRv4Parser parser = parseMySQLGrammar();
         RuleListener listener = new RuleListener();
         parser.addParseListener(listener);
 
         ParseTree tree = parser.grammarSpec();
-        Map<String, MySQLGrammarCrawler.Rule> ruleMap = new HashMap<>();
-        for (MySQLGrammarCrawler.Rule rule : listener.allCollectedRules) {
+        Map<String, Rules.Rule> ruleMap = new HashMap<>();
+        for (Rules.Rule rule : listener.allCollectedRules) {
             ruleMap.put(rule.name, rule);
         }
 

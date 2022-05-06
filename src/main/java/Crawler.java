@@ -5,15 +5,15 @@ public class Crawler {
     public TemplateBufferManager templateBufferManager = new TemplateBufferManager();
     public List<CrawlContext> contextsToProcess = new LinkedList<>();
 
-    public void startCrawl(MySQLGrammarCrawler.Rule rule) {
-        for (MySQLGrammarCrawler.Alternative alternative : rule.alternatives) {
+    public void startCrawl(Rules.Rule rule) {
+        for (Rules.Alternative alternative : rule.alternatives) {
             forkCrawl(null, alternative.elements.get(0));
         }
 
         start();
     }
 
-    public CrawlContext forkCrawl(CrawlContext ctx, MySQLGrammarCrawler.Element elementToProcess) {
+    public CrawlContext forkCrawl(CrawlContext ctx, Rules.Element elementToProcess) {
         if (ctx == null) ctx = new CrawlContext(null, new TemplateBuffer());
 
         TemplateBuffer newTemplateBuffer = templateBufferManager.forkTemplate(ctx.generatedTemplate.elements);
@@ -24,7 +24,7 @@ public class Crawler {
         return newContext;
     }
 
-    public CrawlContext continueCrawl(CrawlContext ctx, MySQLGrammarCrawler.Element elementToProcess) {
+    public CrawlContext continueCrawl(CrawlContext ctx, Rules.Element elementToProcess) {
         CrawlContext newContext = new CrawlContext(elementToProcess, ctx.generatedTemplate);
         newContext.futureElements.addAll(ctx.futureElements);
         contextsToProcess.add(0, newContext);

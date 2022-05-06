@@ -41,6 +41,7 @@ public class MySQLGrammarCrawler {
         rulesToSkip.add("spatialIndexOption");
         rulesToSkip.add("fulltextIndexOption");
 
+        crawlStrategy = new FullCrawlStrategy();
 
         crawler.startCrawl(rule);
 
@@ -129,6 +130,26 @@ public class MySQLGrammarCrawler {
         }
     }
 
+    private static CrawlStrategy crawlStrategy;
+
+    public static interface CrawlStrategy {
+        public boolean shouldCrawl();
+    }
+
+    public static class FullCrawlStrategy implements CrawlStrategy {
+        @Override
+        public boolean shouldCrawl() {
+            return true;
+        }
+    }
+
+    public static class RandomCrawlStrategy implements CrawlStrategy {
+        @Override
+        public boolean shouldCrawl() {
+            return Math.random() > 0.5;
+        }
+    }
+
     public static void processElement(CrawlContext currentContext) {
         Element element = currentContext.elementToProcess;
         TemplateBuffer generatedTemplate = currentContext.generatedTemplate;
@@ -143,9 +164,11 @@ public class MySQLGrammarCrawler {
         if (element.isOptional()) {
             if (!currentContext.includeOptional) {
                 // Here is where we fork off another separate crawler thread, including its own buffer to track its unique output
-                CrawlContext newContext = crawler.forkCrawl(currentContext, element);
-                newContext.includeOptional = true;
-                newContext.parentPath.addAll(currentContext.parentPath);
+                if (crawlStrategy.shouldCrawl()) {
+                    CrawlContext newContext = crawler.forkCrawl(currentContext, element);
+                    newContext.includeOptional = true;
+                    newContext.parentPath.addAll(currentContext.parentPath);
+                }
 
                 if (currentContext.futureElements.isEmpty() == false) {
                     CrawlContext.FutureElementContext futureElementContext = currentContext.futureElements.pop();
@@ -190,6 +213,8 @@ public class MySQLGrammarCrawler {
             if (isChoice) {
                 boolean firstChoice = true;
                 for (Element e : choices) {
+                    if (crawlStrategy.shouldCrawl() == false) continue;
+
                     if (firstChoice) {
                         // The first choice uses the current template buffer.
                         // All additional choices get a forked template buffer.

@@ -24,7 +24,7 @@ public class MySQLGrammarCrawler {
 //        rulesToSkip.add("identifierKeyword");
 //        rulesToSkip.add("fieldIdentifier");
 
-        // TODO: Disabling these to make crawler work for CreateTable without blowing up the heap
+        // Disabling these to limit crawler's output for CreateTable
         rulesToSkip.add("procedureAnalyseClause");
         rulesToSkip.add("expr");
         rulesToSkip.add("queryExpression");
@@ -35,8 +35,8 @@ public class MySQLGrammarCrawler {
         rulesToSkip.add("spatialIndexOption");
         rulesToSkip.add("fulltextIndexOption");
 
-        crawlStrategy = new CrawlStrategies.FullCrawlStrategy();
-//        crawlStrategy = new CrawlStrategies.RandomCrawlStrategy();
+        crawlStrategy = new CrawlStrategies.FullCrawl();
+//        crawlStrategy = new CrawlStrategies.RandomCrawl();
 
         crawler.setStatementPrefix("CREATE ");
         crawler.setStatementWriter(new StdOutStatementWriter());

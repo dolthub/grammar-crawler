@@ -4,14 +4,14 @@ public class CrawlStrategies {
         public boolean shouldCrawl();
     }
 
-    public static class FullCrawlStrategy implements CrawlStrategy {
+    public static class FullCrawl implements CrawlStrategy {
         @Override
         public boolean shouldCrawl() {
             return true;
         }
     }
 
-    public static class RandomCrawlStrategy implements CrawlStrategy {
+    public static class RandomCrawl implements CrawlStrategy {
         @Override
         public boolean shouldCrawl() {
             return Math.random() > 0.5;

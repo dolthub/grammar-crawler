@@ -1,7 +1,6 @@
 import java.util.*;
 
 public class MySQLGrammarCrawler {
-
     private static Set<String> rulesToSkip = new HashSet<>();
 
     private static Map<String, Rules.Rule> ruleMap;
@@ -10,21 +9,16 @@ public class MySQLGrammarCrawler {
 
     private static CrawlStrategies.CrawlStrategy crawlStrategy;
 
-
     public static void main(String[] args) throws Exception {
         ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
 
-        Rules.Rule rule = null;
-        rule = ruleMap.get("createTable");
+        generateCreateTableStatements();
+    }
+
+    private static void generateCreateTableStatements() {
+        Rules.Rule rule = ruleMap.get("createTable");
 //        rule = ruleMap.get("dropUndoTablespace");
 //        rule = ruleMap.get("dropStatement");
-
-
-        System.out.println(rule);
-//        System.out.println(ruleMap.get("tableRefList"));
-//        System.out.println(ruleMap.get("undoTableSpaceOptions"));
-//        System.out.println(ruleMap.get("undoTableSpaceOption"));
-//        System.out.println(ruleMap.get("tsOptionEngine"));
 
         // Configure crawling rules...
         // Skipping these rules to simplify the output and to make it easier to plug in identifier tokens
@@ -43,13 +37,13 @@ public class MySQLGrammarCrawler {
         rulesToSkip.add("spatialIndexOption");
         rulesToSkip.add("fulltextIndexOption");
 
-        crawlStrategy = new CrawlStrategies.FullCrawlStrategy();
+//        crawlStrategy = new CrawlStrategies.FullCrawlStrategy();
+        crawlStrategy = new CrawlStrategies.RandomCrawlStrategy();
 
         crawler.startCrawl(rule);
 
         StatementWriter writer = new StdOutStatementWriter();
 //        StatementWriter writer = new SQLLogicProtoStatementWriter("sqllogic-test.proto");
-
         crawler.writeStatements(writer, "CREATE ");
     }
 

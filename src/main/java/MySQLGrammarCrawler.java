@@ -47,32 +47,10 @@ public class MySQLGrammarCrawler {
 
         crawler.startCrawl(rule);
 
-        System.out.println();
+        StatementWriter writer = new StdOutStatementWriter();
+//        StatementWriter writer = new SQLLogicProtoStatementWriter("sqllogic-test.proto");
 
-        // TODO: We could probably get rid of TemplateManager now that we have a signal when a templatebuffer
-        //       is complete and we could feed the generated templates to the StatementWriter dynamically as
-        //       they finish.
-
-//        StatementWriter writer = new StdOutStatementWriter();
-        StatementWriter writer = new SQLLogicProtoStatementWriter("sqllogic-test.proto");
-
-        // Plug in valid identifiers
-        // TODO: This should be extracted into a separate, configurable interface
-        String statementPrefix = "";
-        for (TemplateBuffer generatedTemplate : crawler.templateBufferManager.generatedTemplates) {
-            if (generatedTemplate.aborted) continue;
-
-            String s = statementPrefix + generatedTemplate.toString();
-
-            s = s.replaceFirst("foo", StatementReifier.randomNewTableName());
-            int i = 1;
-            while (s.contains("foo")) {
-                s = s.replaceFirst("foo", "c" + i);
-                i++;
-            }
-
-            writer.write(s);
-        }
+        crawler.writeStatements(writer, "CREATE ");
     }
 
     public static void processElement(CrawlContext currentContext) {

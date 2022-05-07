@@ -1,8 +1,10 @@
 import java.util.*;
 
 public class MySQLGrammarCrawler {
+    // TODO: Move this into Crawler, so it doesn't have to reach into this class
     public static Set<String> rulesToSkip = new HashSet<>();
 
+    // TODO: Move this into Crawler, so it doesn't have to reach into this class
     public static Map<String, Rules.Rule> ruleMap;
 
     public static void main(String[] args) throws Exception {
@@ -15,8 +17,12 @@ public class MySQLGrammarCrawler {
     private static void generateAllDropStatements() {
         Crawler crawler = new Crawler();
         Rules.Rule rule = ruleMap.get("dropStatement");
+        rulesToSkip.add("identifierKeyword");
+        rulesToSkip.add("dotIdentifier");
+        rulesToSkip.add("roleKeyword");
+
         crawler.setStatementWriter(new StdOutStatementWriter());
-        // crawler.setCrawlStrategy(new CrawlStrategies.RandomCrawl());
+//        crawler.setCrawlStrategy(new CrawlStrategies.RandomCrawl());
         crawler.startCrawl(rule);
     }
 
@@ -27,13 +33,12 @@ public class MySQLGrammarCrawler {
         // Configure crawling rules...
         // Skipping these rules to simplify the output and to make it easier to plug in identifier tokens
         rulesToSkip.add("dotIdentifier");
-//        rulesToSkip.add("identifierKeyword");
-//        rulesToSkip.add("fieldIdentifier");
+        rulesToSkip.add("identifierKeyword");
 
         // Disabling these to limit crawler's output for CreateTable
         rulesToSkip.add("procedureAnalyseClause");
-//        rulesToSkip.add("expr");
-//        rulesToSkip.add("queryExpression");
+        rulesToSkip.add("expr");
+        rulesToSkip.add("queryExpression");
         rulesToSkip.add("queryExpressionOrParens");
         rulesToSkip.add("partitionClause");
         rulesToSkip.add("createTableOptions");
@@ -41,7 +46,7 @@ public class MySQLGrammarCrawler {
         rulesToSkip.add("spatialIndexOption");
         rulesToSkip.add("fulltextIndexOption");
 
-//        crawler.setCrawlStrategy(new CrawlStrategies.RandomCrawl());
+        crawler.setCrawlStrategy(new CrawlStrategies.RandomCrawl());
 
         crawler.setStatementPrefix("CREATE ");
         crawler.setStatementWriter(new StdOutStatementWriter());

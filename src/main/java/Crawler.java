@@ -38,7 +38,11 @@ public class Crawler {
         writer.finished();
     }
 
-    public CrawlContext forkCrawl(CrawlContext ctx, Rules.Element elementToProcess) {
+    //
+    // Private Interface
+    //
+    
+    private CrawlContext forkCrawl(CrawlContext ctx, Rules.Element elementToProcess) {
         if (ctx == null) ctx = new CrawlContext(null, new TemplateBuffer());
 
         // Fork off a new TemplateBuffer to write to, so we don't corrupt the previous crawler path
@@ -52,17 +56,13 @@ public class Crawler {
         return newContext;
     }
 
-    public CrawlContext continueCrawl(CrawlContext ctx, Rules.Element elementToProcess) {
+    private CrawlContext continueCrawl(CrawlContext ctx, Rules.Element elementToProcess) {
         CrawlContext newContext = new CrawlContext(elementToProcess, ctx.generatedTemplate);
         newContext.futureElements.addAll(ctx.futureElements);
         contextsToProcess.add(0, newContext);
 
         return newContext;
     }
-
-    //
-    // Private Interface
-    //
 
     private void start() {
         while (!contextsToProcess.isEmpty()) {
@@ -206,12 +206,13 @@ public class Crawler {
                     newContext.parentPath.addAll(currentContext.parentPath);
                     first = false;
                 } else {
-                    // dataType explodes our crawl too much, so if we hit this rule, only include the first alternative
-                    if (rule.name.equals("dataType") == false) continue;
-                    // TODO: For now, we skip following rule alternatives (other than the first alternative), since
-                    //       it explodes the crawl space and blows the heap.
-//                    CrawlContext newContext = forkCrawl(currentContext, alternative.elements.get(0));
-//                    newContext.parentPath.addAll(currentContext.parentPath);
+                    // Check the crawl strategy after we've already scheduled the first alternative to be
+                    // crawled to ensure at least one gets selected. Ideally the crawl strategy would
+                    // be more intelligent and ensure at least one alternative is chosen.
+                    if (crawlStrategy.shouldCrawl() == false) continue;
+
+                    CrawlContext newContext = forkCrawl(currentContext, alternative.elements.get(0));
+                    newContext.parentPath.addAll(currentContext.parentPath);
                 }
             }
             return;

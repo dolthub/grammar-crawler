@@ -45,6 +45,10 @@ public class StatementReifier {
                 return "42";
             case "DECIMAL_NUMBER":
                 return "4.2";
+            case "HEX_NUMBER":
+                return "0x2A";
+            case "BIN_NUMBER":
+                return "0b1101";
         }
 
         if (symbolName.endsWith("_SYMBOL")) {

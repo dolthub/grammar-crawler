@@ -3,31 +3,48 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Crawler {
-    public List<CrawlContext> contextsToProcess = new LinkedList<>();
+    private List<CrawlContext> contextsToProcess = new LinkedList<>();
     private StatementWriter writer;
     private String prefix = "";
-
     private CrawlStrategies.CrawlStrategy crawlStrategy = new CrawlStrategies.FullCrawl();
-
     private TemplateStats templateStats = new TemplateStats();
 
-    private class TemplateStats {
-        public int abortedTemplates = 0;
-        public int completedTemplates = 0;
-    }
-
+    /**
+     * Sets the output writer for generated statements.
+     *
+     * @param writer The StatementWriter to which completed statements should be sent.
+     */
     public void setStatementWriter(StatementWriter writer) {
         this.writer = writer;
     }
 
+    /**
+     * Sets the prefix for generated statements. This is useful when starting a crawl on a rule that will
+     * not generate a complete/valid statement because of a missing prefix.
+     *
+     * @param prefix The statement prefix to apply to all crawled statements.
+     */
     public void setStatementPrefix(String prefix) {
         this.prefix = prefix;
     }
 
+    /**
+     * Sets the CrawlStrategy that controls how this crawler will traverse the grammar graph. The default
+     * CrawlStrategy is to perform a full crawl of all paths through the graph, however for anything but
+     * simple rules, this will result in a large amount of generated statements.
+     *
+     * @param crawlStrategy The CrawlStrategy used to control which paths the crawler traverses in the grammar graph.
+     */
     public void setCrawlStrategy(CrawlStrategies.CrawlStrategy crawlStrategy) {
         this.crawlStrategy = crawlStrategy;
     }
 
+    /**
+     * Starts the crawler at the specified rule using the crawl strategy set in SetCrawlStrategy.
+     * As the crawler completes template statements, it sends them to the configured StatementWriter for output.
+     *
+     * @param rule The grammar rule at which to start the crawl.
+     */
     public void startCrawl(Rules.Rule rule) {
         for (Rules.Alternative alternative : rule.alternatives) {
             forkCrawl(null, alternative.elements.get(0));
@@ -41,7 +58,12 @@ public class Crawler {
     //
     // Private Interface
     //
-    
+
+    private class TemplateStats {
+        public int abortedTemplates = 0;
+        public int completedTemplates = 0;
+    }
+
     private CrawlContext forkCrawl(CrawlContext ctx, Rules.Element elementToProcess) {
         if (ctx == null) ctx = new CrawlContext(null, new TemplateBuffer());
 

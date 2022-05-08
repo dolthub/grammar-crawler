@@ -3,7 +3,7 @@ import java.util.List;
 import java.util.Stack;
 
 class CrawlContext {
-    public Stack<FutureElementContext> futureElements = new Stack();
+    public Stack<FutureElementContext> futureElements = new Stack<>();
     public TemplateBuffer generatedTemplate;
     public Rules.Element elementToProcess;
 

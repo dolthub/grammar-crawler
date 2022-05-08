@@ -8,6 +8,7 @@ class CrawlContext {
     public Rules.Element elementToProcess;
 
     // TODO: This could change to something like numberOfTimesToProcess = 0 | 1 | 2;
+    //       That would enable processing *,+, and ? with the same codepath.
     public boolean includeOptional = false;
 
     public List<String> parentPath = new ArrayList<>();

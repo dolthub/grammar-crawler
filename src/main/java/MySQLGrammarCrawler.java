@@ -3,9 +3,7 @@ import java.util.*;
 public class MySQLGrammarCrawler {
     // TODO: Move this into Crawler, so it doesn't have to reach into this class
     public static Set<String> rulesToSkip = new HashSet<>();
-
-    // TODO: Move this into Crawler, so it doesn't have to reach into this class
-    public static Map<String, Rules.Rule> ruleMap;
+    private static Map<String, Rules.Rule> ruleMap;
 
     public static void main(String[] args) throws Exception {
         ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
@@ -15,7 +13,7 @@ public class MySQLGrammarCrawler {
     }
 
     private static void generateAllDropStatements() {
-        Crawler crawler = new Crawler();
+        Crawler crawler = new Crawler(ruleMap);
         Rules.Rule rule = ruleMap.get("dropStatement");
         rulesToSkip.add("identifierKeyword");
         rulesToSkip.add("dotIdentifier");
@@ -27,7 +25,7 @@ public class MySQLGrammarCrawler {
     }
 
     private static void generateCreateTableStatements() {
-        Crawler crawler = new Crawler();
+        Crawler crawler = new Crawler(ruleMap);
         Rules.Rule rule = ruleMap.get("createTable");
 
         // Configure crawling rules...

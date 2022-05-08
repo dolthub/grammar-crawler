@@ -1,13 +1,25 @@
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class Crawler {
+    private final Map<String, Rules.Rule> ruleMap;
     private List<CrawlContext> contextsToProcess = new LinkedList<>();
     private StatementWriter writer;
     private String prefix = "";
     private CrawlStrategies.CrawlStrategy crawlStrategy = new CrawlStrategies.FullCrawl();
     private TemplateStats templateStats = new TemplateStats();
+
+
+    /**
+     * Creates a new crawler for the specified grammar rules.
+     *
+     * @param rules The grammar rules for the crawler to crawl.
+     */
+    public Crawler(Map<String, Rules.Rule> rules) {
+        this.ruleMap = rules;
+    }
 
     /**
      * Sets the output writer for generated statements.
@@ -203,7 +215,7 @@ public class Crawler {
             }
         } else if (element instanceof Rules.RuleRefElement) {
             Rules.RuleRefElement ruleref = (Rules.RuleRefElement) element;
-            Rules.Rule rule = MySQLGrammarCrawler.ruleMap.get(ruleref.getName());
+            Rules.Rule rule = ruleMap.get(ruleref.getName());
 
             // TODO: Instead of just testing contains... we want to have a limit on how many times we recurse through a rule
             //       but... shouldn't the block below prevent cycles?

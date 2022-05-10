@@ -155,6 +155,11 @@ public class Crawler {
         }
 
         if (element instanceof Rules.LiteralElement) {
+            if (MySQLGrammarCrawler.rulesToSkip.contains(element.getName())) {
+                currentContext.abort();
+                return;
+            }
+
             generatedTemplate.addElement(element);
         } else if (element instanceof Rules.ElementGroup) {
             Rules.ElementGroup group = (Rules.ElementGroup) element;

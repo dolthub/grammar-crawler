@@ -5,6 +5,15 @@ public class StatementReifier {
         return "t" + Integer.toHexString(tableNameCounter++);
     }
 
+    private static long textId = 0;
+
+    public static String postProcessStatement(String statement) {
+        statement = statement.replace("'text' 'text'", "'text text'");
+        statement = statement.replaceAll("\\( ", "(");
+        statement = statement.replaceAll(" \\)", ")");
+
+        return statement;
+    }
 
     public static String translateSymbol(String symbolName) {
         // TODO: Load these from the lexer instead of manually defining them...
@@ -29,6 +38,16 @@ public class StatementReifier {
                 return "{";
             case "CLOSE_CURLY_SYMBOL":
                 return "}";
+            case "NULL2_SYMBOL":
+                return "NULL";
+            case "MINUS_OPERATOR":
+                return "-";
+            case "PLUS_OPERATOR":
+                return "+";
+            case "NOT2_SYMBOL":
+                return "NOT";
+            case "AUTO_INCREMENT_SYMBOL":
+                return "AUTO INCREMENT";
         }
 
         // TODO: All of these identifiers need more granular control for customizing in statements
@@ -41,10 +60,18 @@ public class StatementReifier {
                 return "'text'";
             case "DOUBLE_QUOTED_TEXT":
                 return "\"text\"";
+            case "ULONGLONG_NUMBER":
+                return "42";
+            case "NCHAR_TEXT":
+                return "text" + textId++;
+            case "FLOAT_NUMBER":
+                return "4.2";
             case "INT_NUMBER":
+            case "LONG_NUMBER":
                 return "42";
             case "DECIMAL_NUMBER":
-                return "4.2";
+                // TODO: Starting with an int
+                return "4";
             case "HEX_NUMBER":
                 return "0x2A";
             case "BIN_NUMBER":

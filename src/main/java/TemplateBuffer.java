@@ -30,6 +30,8 @@ public class TemplateBuffer {
             String translated = StatementReifier.translateSymbol(e.getName());
             strings.add(translated);
         }
-        return String.join(" ", strings) + ";";
+        String s = String.join(" ", strings) + ";";
+        s = StatementReifier.postProcessStatement(s);
+        return s;
     }
 }

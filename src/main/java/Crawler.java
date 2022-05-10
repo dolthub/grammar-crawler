@@ -6,10 +6,11 @@ import java.util.Map;
 public class Crawler {
     private final Map<String, Rules.Rule> ruleMap;
     private List<CrawlContext> contextsToProcess = new LinkedList<>();
-    private StatementWriter writer;
     private String prefix = "";
     private CrawlStrategies.CrawlStrategy crawlStrategy = new CrawlStrategies.FullCrawl();
     private TemplateStats templateStats = new TemplateStats();
+    private int statementLimit;
+    private StatementWriter[] writers;
 
 
     /**
@@ -27,7 +28,16 @@ public class Crawler {
      * @param writer The StatementWriter to which completed statements should be sent.
      */
     public void setStatementWriter(StatementWriter writer) {
-        this.writer = writer;
+        this.writers = new StatementWriter[]{writer};
+    }
+
+    /**
+     * Sets multiple output writers for generated statements.
+     *
+     * @param writers The StatementWriter objects to which completed statements should be sent.
+     */
+    public void setStatementWriters(StatementWriter... writers) {
+        this.writers = writers;
     }
 
     /**
@@ -38,6 +48,15 @@ public class Crawler {
      */
     public void setStatementPrefix(String prefix) {
         this.prefix = prefix;
+    }
+
+    /**
+     * Sets the maxiumum number of statements to generate.
+     *
+     * @param statementLimit The max number of statements to generate.
+     */
+    public void setStatementLimit(int statementLimit) {
+        this.statementLimit = statementLimit;
     }
 
     /**
@@ -64,7 +83,7 @@ public class Crawler {
 
         start();
 
-        writer.finished();
+        for (StatementWriter writer : writers) writer.finished();
     }
 
     //
@@ -100,6 +119,10 @@ public class Crawler {
 
     private void start() {
         while (!contextsToProcess.isEmpty()) {
+            if (statementLimit > -1 && templateStats.completedTemplates >= statementLimit) {
+                break;
+            }
+
             CrawlContext ctx = contextsToProcess.remove(0);
 
             // If a crawl context was aborted while in process, don't process any other
@@ -124,7 +147,7 @@ public class Crawler {
             i++;
         }
 
-        writer.write(s);
+        for (StatementWriter writer : writers) writer.write(s);
     }
 
     private void processElement(CrawlContext currentContext) {

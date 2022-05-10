@@ -27,7 +27,7 @@ public class MySQLGrammarCrawler {
 
     private static void generateCreateTableStatements() throws IOException {
         Crawler crawler = new Crawler(ruleMap);
-        Rules.Rule rule = ruleMap.get("createTable");
+        crawler.setStatementLimit(1000);
 
         // Skipping these rules to simplify the output and to make it easier to plug in identifier tokens
         rulesToSkip.add("dotIdentifier");
@@ -83,9 +83,10 @@ public class MySQLGrammarCrawler {
         crawler.setCrawlStrategy(new CrawlStrategies.RandomCrawl());
 
         crawler.setStatementPrefix("CREATE ");
-        crawler.setStatementWriter(new StdOutStatementWriter());
-//        crawler.setStatementWriter(new SQLLogicProtoStatementWriter("sqllogic-test.proto"));
+        crawler.setStatementWriters(
+                new StdOutStatementWriter(),
+                new SQLLogicProtoStatementWriter("sqllogic-test-create-table.proto"));
 
-        crawler.startCrawl(rule);
+        crawler.startCrawl(ruleMap.get("createTable"));
     }
 }

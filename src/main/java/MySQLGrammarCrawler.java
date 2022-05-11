@@ -36,17 +36,23 @@ public class MySQLGrammarCrawler {
         rulesToSkip.add("DOUBLE_QUOTED_TEXT");
 
         // Disabling these to limit crawler's output for CreateTable
-        rulesToSkip.add("procedureAnalyseClause");
-        rulesToSkip.add("expr");
-        rulesToSkip.add("queryExpression");
-        rulesToSkip.add("queryExpressionOrParens");
-        rulesToSkip.add("partitionClause");
-        rulesToSkip.add("createTableOptions");
+        rulesToSkip.add("partitionClause");          // TODO: Can we turn this back on?
+        rulesToSkip.add("createTableOptions");       // TODO: We should turn this on soon
+
+        // We should add support for constraints and indexes, but that will require
+        // knowledge of type information and table schema when generating statements and
+        // when plugging in identifiers.
         rulesToSkip.add("tableConstraintDef");
         rulesToSkip.add("spatialIndexOption");
         rulesToSkip.add("fulltextIndexOption");
-        rulesToSkip.add("references");
         rulesToSkip.add("constraintEnforcement");
+        rulesToSkip.add("references");
+
+        // Supporting expressions requires smarter logic for filling in
+        // identifiers and type information in order to generate valid expressions
+        rulesToSkip.add("expr");
+        rulesToSkip.add("queryExpression");
+        rulesToSkip.add("queryExpressionOrParens");
 
 
         // COLUMN_FORMAT is a feature of MySQL NDB Cluster that allows you to specify a data storage format
@@ -61,6 +67,7 @@ public class MySQLGrammarCrawler {
 
         // Dolt doesn't support non-default collations and charsets or underscore charset notation
         rulesToSkip.add("collate");
+        rulesToSkip.add("charset");
         rulesToSkip.add("CHARSET_SYMBOL");
         rulesToSkip.add("UNDERSCORE_CHARSET");
 
@@ -68,7 +75,6 @@ public class MySQLGrammarCrawler {
         // correct type for the default value yet, so skip those rules for now. We could fix this
         // by having the reifier be smart enough to recognize default value tokens and look back
         // at the type of column and then generate a valid value.
-        //rulesToSkip.add("setExprOrDefault"); // TODO: Can this be left out if DEFAULT_SYMBOL is already skipped?
         rulesToSkip.add("DEFAULT_SYMBOL");
         rulesToSkip.add("AUTO_INCREMENT_SYMBOL");
         rulesToSkip.add("NOW_SYMBOL");
@@ -77,8 +83,8 @@ public class MySQLGrammarCrawler {
         //       https://github.com/dolthub/vitess/pull/162
         rulesToSkip.add("SIGNED_SYMBOL");
 
-        rulesToSkip.add("SET_SYMBOL");
-        rulesToSkip.add("SRID_SYMBOL");        // Disabling spatial reference IDs
+        // Disabling spatial reference IDs
+        rulesToSkip.add("SRID_SYMBOL");
 
         crawler.setCrawlStrategy(new CrawlStrategies.RandomCrawl());
 

@@ -8,9 +8,15 @@ public class StatementReifier {
     private static long textId = 0;
 
     public static String postProcessStatement(String statement) {
-        statement = statement.replace("'text' 'text'", "'text text'");
+        // Clean up spacing around parens and commas
         statement = statement.replaceAll("\\( ", "(");
         statement = statement.replaceAll(" \\)", ")");
+        statement = statement.replaceAll(" , ", ", ");
+
+        // The MySQL grammar allows two text strings after COMMENT, but those statements won't actually parse
+        statement = statement.replaceAll("COMMENT ['\"`]?text(\\d+)['\"`]? '", "COMMENT '");
+        statement = statement.replaceAll("COMMENT ['\"`]?text(\\d+)['\"`]? \"", "COMMENT \"");
+        statement = statement.replaceAll("COMMENT ['\"`]?text(\\d+)['\"`]? `", "COMMENT `");
 
         return statement;
     }
@@ -57,25 +63,24 @@ public class StatementReifier {
             case "BACK_TICK_QUOTED_ID":
                 return "`foo`";
             case "SINGLE_QUOTED_TEXT":
-                return "'text'";
+                return "'text" + textId++ + "'";
             case "DOUBLE_QUOTED_TEXT":
-                return "\"text\"";
-            case "ULONGLONG_NUMBER":
-                return "42";
+                return "\"text" + textId++ + "\"";
             case "NCHAR_TEXT":
                 return "text" + textId++;
+            case "ULONGLONG_NUMBER":
+                return "42";
             case "FLOAT_NUMBER":
                 return "4.2";
             case "INT_NUMBER":
             case "LONG_NUMBER":
-                return "42";
+                return Integer.toString(randomInt(10, 20));
             case "DECIMAL_NUMBER":
-                // TODO: Starting with an int
                 return "4";
             case "HEX_NUMBER":
-                return "0x2A";
+                return "0x" + Integer.toHexString(randomInt(1, 20));
             case "BIN_NUMBER":
-                return "0b1101";
+                return "0b" + Integer.toBinaryString(randomInt(1, 20));
         }
 
         if (symbolName.endsWith("_SYMBOL")) {
@@ -83,5 +88,9 @@ public class StatementReifier {
         }
 
         return symbolName;
+    }
+
+    private static int randomInt(int min, int max) {
+        return (int) Math.floor(Math.random() * (max - min + 1) + min);
     }
 }

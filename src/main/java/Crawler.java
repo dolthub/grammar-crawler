@@ -6,7 +6,7 @@ public class Crawler {
     private String prefix = "";
     private CrawlStrategies.CrawlStrategy crawlStrategy = new CrawlStrategies.FullCrawl();
     private TemplateStats templateStats = new TemplateStats();
-    private int statementLimit;
+    private int statementLimit = -1;
     private StatementWriter[] writers;
     private Map<Rules.Element, Integer> mapLiteralElementsToUsage = new HashMap<>();
 

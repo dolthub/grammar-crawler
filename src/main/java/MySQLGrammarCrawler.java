@@ -21,8 +21,8 @@ public class MySQLGrammarCrawler {
         rulesToSkip.add("roleKeyword");
 
         crawler.setStatementWriter(new StdOutStatementWriter());
-//        crawler.setCrawlStrategy(new CrawlStrategies.RandomCrawl());
         crawler.startCrawl(rule);
+        crawler.printCoverageStats();
     }
 
     private static void generateCreateTableStatements() throws IOException {

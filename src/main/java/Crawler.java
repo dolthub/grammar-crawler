@@ -3,6 +3,7 @@ import java.util.*;
 public class Crawler {
     private final Map<String, Rules.Rule> ruleMap;
     private List<CrawlContext> contextsToProcess = new LinkedList<>();
+    private Set<String> rulesToSkip = new HashSet<>();
     private String prefix = "";
     private CrawlStrategies.CrawlStrategy crawlStrategy = new CrawlStrategies.FullCrawl();
     private TemplateStats templateStats = new TemplateStats();
@@ -69,6 +70,16 @@ public class Crawler {
     }
 
     /**
+     * Adds the specified rule names to the list of rules that the crawler should not crawl. If the crawler
+     * encounters any of these rules while crawling the grammar's graph, it will abandon the current crawl path.
+     *
+     * @param rules The names of rules to add to the skipped rule list.
+     */
+    public void addRulesToSkip(String... rules) {
+        for (String rule : rules) rulesToSkip.add(rule);
+    }
+
+    /**
      * Starts the crawler at the specified rule using the crawl strategy set in SetCrawlStrategy.
      * As the crawler completes template statements, it sends them to the configured StatementWriter for output.
      *
@@ -127,7 +138,7 @@ public class Crawler {
             if (element instanceof Rules.SeparatorElement) continue;
 
             if (mapLiteralElementsToUsage.containsKey(element)) continue;
-            if (MySQLGrammarCrawler.rulesToSkip.contains(element.getName())) continue;
+            if (rulesToSkip.contains(element.getName())) continue;
 
             if (element instanceof Rules.LiteralElement) {
                 mapLiteralElementsToUsage.put(element, 0);
@@ -239,7 +250,7 @@ public class Crawler {
         }
 
         if (element instanceof Rules.LiteralElement) {
-            if (MySQLGrammarCrawler.rulesToSkip.contains(element.getName())) {
+            if (rulesToSkip.contains(element.getName())) {
                 currentContext.abort();
                 return;
             }
@@ -308,7 +319,7 @@ public class Crawler {
 
             // TODO: Instead of just testing contains... we want to have a limit on how many times we recurse through a rule
             //       but... shouldn't the block below prevent cycles?
-            if (MySQLGrammarCrawler.rulesToSkip.contains(rule.name)) {
+            if (rulesToSkip.contains(rule.name)) {
                 currentContext.abort();
                 return;
             }

@@ -5,7 +5,7 @@ public class Crawler {
     private List<CrawlContext> contextsToProcess = new LinkedList<>();
     private Set<String> rulesToSkip = new HashSet<>();
     private String prefix = "";
-    private CrawlStrategies.CrawlStrategy crawlStrategy = new CrawlStrategies.FullCrawl();
+    private CrawlStrategies.CrawlStrategy crawlStrategy = CrawlStrategies.FULL_CRAWL;
     private TemplateStats templateStats = new TemplateStats();
     private int statementLimit = -1;
     private StatementWriter[] writers;

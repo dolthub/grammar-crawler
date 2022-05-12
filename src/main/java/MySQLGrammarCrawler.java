@@ -90,7 +90,7 @@ public class MySQLGrammarCrawler {
         // Disabling spatial reference IDs
         crawler.addRulesToSkip("SRID_SYMBOL");
 
-        crawler.setCrawlStrategy(new CrawlStrategies.RandomCrawl());
+        crawler.setCrawlStrategy(CrawlStrategies.RANDOM_CRAWL);
 
         crawler.setStatementPrefix("CREATE ");
         crawler.setStatementWriters(

@@ -1,5 +1,8 @@
 public class CrawlStrategies {
 
+    public static final CrawlStrategy FULL_CRAWL = new FullCrawl();
+    public static final CrawlStrategy RANDOM_CRAWL = new RandomCrawl();
+
     public static interface CrawlStrategy {
         public boolean shouldCrawl();
     }

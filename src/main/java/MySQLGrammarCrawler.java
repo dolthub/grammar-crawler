@@ -79,7 +79,7 @@ public class MySQLGrammarCrawler {
         rulesToSkip.add("AUTO_INCREMENT_SYMBOL");
         rulesToSkip.add("NOW_SYMBOL");
 
-        // TODO: Temporarily disable the SIGNED keyword, until that change lands in main
+        // TODO: Temporarily disable the SIGNED keyword, until that change lands in a release
         //       https://github.com/dolthub/vitess/pull/162
         rulesToSkip.add("SIGNED_SYMBOL");
 

@@ -94,5 +94,6 @@ public class MySQLGrammarCrawler {
                 new SQLLogicProtoStatementWriter("sqllogic-test-create-table.proto"));
 
         crawler.startCrawl(ruleMap.get("createTable"));
+        crawler.printCoverageStats();
     }
 }

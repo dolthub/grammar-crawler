@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Crawler {
     private final Map<String, Rules.Rule> ruleMap;
@@ -11,6 +8,7 @@ public class Crawler {
     private TemplateStats templateStats = new TemplateStats();
     private int statementLimit;
     private StatementWriter[] writers;
+    private Map<Rules.Element, Integer> mapLiteralElementsToUsage = new HashMap<>();
 
 
     /**
@@ -77,6 +75,8 @@ public class Crawler {
      * @param rule The grammar rule at which to start the crawl.
      */
     public void startCrawl(Rules.Rule rule) {
+        initializeUsageMap(rule);
+
         for (Rules.Alternative alternative : rule.alternatives) {
             forkCrawl(null, alternative.elements.get(0));
         }
@@ -86,11 +86,69 @@ public class Crawler {
         for (StatementWriter writer : writers) writer.finished();
     }
 
+    /**
+     * Prints various statistics on how well the generated statements cover the
+     * total available leaf nodes in the grammar's graph.
+     */
+    public void printCoverageStats() {
+        List<Rules.Element> unusedElements = new LinkedList<>();
+        List<Rules.Element> frequentlyUsedElements = new LinkedList<>();
+
+        for (Rules.Element element : mapLiteralElementsToUsage.keySet()) {
+            int usage = mapLiteralElementsToUsage.get(element);
+            if (usage == 0) unusedElements.add(element);
+            else if (usage > 100) frequentlyUsedElements.add(element);
+        }
+
+        int totalLiteralElementCount = mapLiteralElementsToUsage.size();
+        int usedLiteralElementCount = totalLiteralElementCount - unusedElements.size();
+        float coveragePercent = (float) usedLiteralElementCount / (float) totalLiteralElementCount;
+        System.out.println("Literal Element Coverage: ");
+        System.out.println(" - Total:    " + totalLiteralElementCount);
+        System.out.println(" - Used:     " + usedLiteralElementCount);
+        System.out.println(" - Unused:   " + unusedElements.size());
+        System.out.println(" - Frequent: " + frequentlyUsedElements.size());
+        System.out.println(" - Coverage: " + String.format("%.02f", (100 * coveragePercent)) + "%");
+    }
+
     //
     // Private Interface
     //
 
+    private void initializeUsageMap(Rules.Rule rule) {
+        for (Rules.Alternative alternative : rule.alternatives) {
+            recurseOnElementsToInitializeRuleMap(alternative.elements);
+        }
+    }
+
+    private void recurseOnElementsToInitializeRuleMap(List<Rules.Element> elements) {
+        for (Rules.Element element : elements) {
+            // TODO: This is a hack from how we don't use Choice elements
+            if (element instanceof Rules.SeparatorElement) continue;
+
+            if (mapLiteralElementsToUsage.containsKey(element)) continue;
+            if (MySQLGrammarCrawler.rulesToSkip.contains(element.getName())) continue;
+
+            if (element instanceof Rules.LiteralElement) {
+                mapLiteralElementsToUsage.put(element, 0);
+            } else if (element instanceof Rules.ElementGroup) {
+                Rules.ElementGroup group = (Rules.ElementGroup) element;
+                recurseOnElementsToInitializeRuleMap(group.elements);
+            } else if (element instanceof Rules.RuleRefElement) {
+                Rules.RuleRefElement ruleref = (Rules.RuleRefElement) element;
+                Rules.Rule rule = ruleMap.get(ruleref.getName());
+                // TODO: Eventually we should also track the used rules
+                for (Rules.Alternative alternative : rule.alternatives) {
+                    recurseOnElementsToInitializeRuleMap(alternative.elements);
+                }
+            } else {
+                throw new RuntimeException("Unexpected element type: " + element.getClass());
+            }
+        }
+    }
+
     private class TemplateStats {
+        // TODO: Crawler doesn't currently have a hook into aborted templates
         public int abortedTemplates = 0;
         public int completedTemplates = 0;
     }
@@ -135,6 +193,16 @@ public class Crawler {
 
     private void statementCompleted(TemplateBuffer generatedTemplate) {
         templateStats.completedTemplates++;
+
+        // TODO: This is only going to track the usage of LiteralElements, since
+        //       that's all TemplateBuffer will ever contain (the leaf nodes in the graph).
+        for (Rules.Element element : generatedTemplate.elements) {
+            if (mapLiteralElementsToUsage.containsKey(element) == false) {
+                throw new RuntimeException("Element not found in usage map!" + element);
+            }
+            int usage = mapLiteralElementsToUsage.get(element) + 1;
+            mapLiteralElementsToUsage.put(element, usage);
+        }
 
         // Plug in valid identifiers and send reified statements out to the statement writer
         String s = prefix + generatedTemplate;

@@ -124,6 +124,16 @@ public class Rules {
         public String toString() {
             return s + (onceOrMore ? "+" : "") + (repeated ? "*" : "") + (optional ? "?" : "");
         }
+
+        @Override
+        public boolean equals(Object other) {
+            return this.toString().equals(other.toString());
+        }
+
+        @Override
+        public int hashCode() {
+            return this.toString().hashCode();
+        }
     }
 
     public static class SeparatorElement extends Element {

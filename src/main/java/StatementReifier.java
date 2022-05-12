@@ -1,13 +1,30 @@
 public class StatementReifier {
     private static int tableNameCounter = 1;
-
-    public static String randomNewTableName() {
-        return "t" + Integer.toHexString(tableNameCounter++);
-    }
-
     private static long textId = 0;
 
-    public static String postProcessStatement(String statement) {
+    /**
+     * Turns the specified template into a valid statement.
+     *
+     * @param prefix            The prefix to add to the generated statement. Useful when crawling a rule
+     *                          that starts at a subset of a complete statement.
+     * @param generatedTemplate The template to use to create a valid statement.
+     * @return A valid statement created from specified statement template.
+     */
+    public static String reifyStatement(String prefix, TemplateBuffer generatedTemplate) {
+        // Plug in valid identifiers and send reified statements out to the statement writer
+        String s = prefix + generatedTemplate;
+
+        s = s.replaceFirst("foo", StatementReifier.randomNewTableName());
+        int i = 1;
+        while (s.contains("foo")) {
+            s = s.replaceFirst("foo", "c" + i);
+            i++;
+        }
+
+        return s;
+    }
+
+    static String postProcessStatement(String statement) {
         // Clean up spacing around parens and commas
         statement = statement.replaceAll("\\( ", "(");
         statement = statement.replaceAll(" \\)", ")");
@@ -21,7 +38,7 @@ public class StatementReifier {
         return statement;
     }
 
-    public static String translateSymbol(String symbolName) {
+    static String translateSymbol(String symbolName) {
         // TODO: Load these from the lexer instead of manually defining them...
         switch (symbolName) {
             case "DOT_SYMBOL":
@@ -90,6 +107,10 @@ public class StatementReifier {
         return symbolName;
     }
 
+    private static String randomNewTableName() {
+        return "t" + Integer.toHexString(tableNameCounter++);
+    }
+    
     private static int randomInt(int min, int max) {
         return (int) Math.floor(Math.random() * (max - min + 1) + min);
     }

@@ -193,7 +193,13 @@ public class Crawler {
 
     private void statementCompleted(TemplateBuffer generatedTemplate) {
         templateStats.completedTemplates++;
+        updateLiteralElementUsage(generatedTemplate);
 
+        String s = StatementReifier.reifyStatement(prefix, generatedTemplate);
+        for (StatementWriter writer : writers) writer.write(s);
+    }
+
+    private void updateLiteralElementUsage(TemplateBuffer generatedTemplate) {
         // TODO: This is only going to track the usage of LiteralElements, since
         //       that's all TemplateBuffer will ever contain (the leaf nodes in the graph).
         for (Rules.Element element : generatedTemplate.elements) {
@@ -203,19 +209,6 @@ public class Crawler {
             int usage = mapLiteralElementsToUsage.get(element) + 1;
             mapLiteralElementsToUsage.put(element, usage);
         }
-
-        // Plug in valid identifiers and send reified statements out to the statement writer
-        String s = prefix + generatedTemplate;
-
-        // TODO: This should be extracted into a separate, configurable interface
-        s = s.replaceFirst("foo", StatementReifier.randomNewTableName());
-        int i = 1;
-        while (s.contains("foo")) {
-            s = s.replaceFirst("foo", "c" + i);
-            i++;
-        }
-
-        for (StatementWriter writer : writers) writer.write(s);
     }
 
     private void processElement(CrawlContext currentContext) {

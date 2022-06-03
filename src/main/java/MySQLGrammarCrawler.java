@@ -27,7 +27,7 @@ public class MySQLGrammarCrawler {
 
     private static void generateCreateTableStatements() throws IOException {
         Crawler crawler = new Crawler(ruleMap);
-        crawler.setStatementLimit(5_000);
+        crawler.setStatementLimit(50_000);
 
         // Skipping these rules to simplify the output and to make it easier to plug in identifier tokens
         // DOUBLE_QUOTED_TEXT generates double-quoted strings for column names, which MySQL doesn't actually allow.

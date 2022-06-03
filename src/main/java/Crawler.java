@@ -21,6 +21,14 @@ public class Crawler {
         this.ruleMap = rules;
     }
 
+    public Map<String, Rules.Rule> getRuleMap() {
+        return ruleMap;
+    }
+
+    public Set<String> getRulesToSkip() {
+        return rulesToSkip;
+    }
+
     /**
      * Sets the output writer for generated statements.
      *
@@ -229,7 +237,7 @@ public class Crawler {
         if (element.isOptional()) {
             if (!currentContext.includeOptional) {
                 // Here is where we fork off another separate crawler thread, including its own buffer to track its unique output
-                if (crawlStrategy.shouldCrawl()) {
+                if (crawlStrategy.shouldCrawl(element)) {
                     CrawlContext newContext = forkCrawl(currentContext, element);
                     newContext.includeOptional = true;
                     newContext.parentPath.addAll(currentContext.parentPath);
@@ -283,7 +291,7 @@ public class Crawler {
             if (isChoice) {
                 boolean firstChoice = true;
                 for (Rules.Element e : choices) {
-                    if (crawlStrategy.shouldCrawl() == false) continue;
+                    if (crawlStrategy.shouldCrawl(element) == false) continue;
 
                     if (firstChoice) {
                         // The first choice uses the current template buffer.
@@ -343,7 +351,7 @@ public class Crawler {
                     // Check the crawl strategy after we've already scheduled the first alternative to be
                     // crawled to ensure at least one gets selected. Ideally the crawl strategy would
                     // be more intelligent and ensure at least one alternative is chosen.
-                    if (crawlStrategy.shouldCrawl() == false) continue;
+                    if (crawlStrategy.shouldCrawl(element) == false) continue;
 
                     CrawlContext newContext = forkCrawl(currentContext, alternative.elements.get(0));
                     newContext.parentPath.addAll(currentContext.parentPath);

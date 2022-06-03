@@ -1,28 +1,13 @@
 import java.io.IOException;
 import java.util.*;
 
-public class MySQLGrammarCrawler {
+public class CreateTableStatementsExample {
     private static Map<String, Rules.Rule> ruleMap;
 
     public static void main(String[] args) throws Exception {
         ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
 
         generateCreateTableStatements();
-//        generateAllDropStatements();
-    }
-
-    private static void generateAllDropStatements() {
-        Crawler crawler = new Crawler(ruleMap);
-        Rules.Rule rule = ruleMap.get("dropStatement");
-
-        crawler.addRulesToSkip(
-                "identifierKeyword",
-                "dotIdentifier",
-                "roleKeyword");
-
-        crawler.setStatementWriter(new StdOutStatementWriter());
-        crawler.startCrawl(rule);
-        crawler.printCoverageStats();
     }
 
     private static void generateCreateTableStatements() throws IOException {
@@ -83,6 +68,7 @@ public class MySQLGrammarCrawler {
                 "AUTO_INCREMENT_SYMBOL",
                 "NOW_SYMBOL");
 
+        // TODO: Safe to pull this out now!
         // TODO: Temporarily disable the SIGNED keyword, until that change lands in a release
         //       https://github.com/dolthub/vitess/pull/162
         crawler.addRulesToSkip("SIGNED_SYMBOL");
@@ -90,7 +76,10 @@ public class MySQLGrammarCrawler {
         // Disabling spatial reference IDs
         crawler.addRulesToSkip("SRID_SYMBOL");
 
-        crawler.setCrawlStrategy(CrawlStrategies.RANDOM_CRAWL);
+        crawler.setCrawlStrategy(
+//                CrawlStrategies.RANDOM_CRAWL);
+                new CrawlStrategies.CoverageAwareCrawl(crawler));
+
 
         crawler.setStatementPrefix("CREATE ");
         crawler.setStatementWriters(

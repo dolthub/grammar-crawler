@@ -21,12 +21,33 @@ public class Crawler {
         this.ruleMap = rules;
     }
 
+    /**
+     * Returns the map of rules, keyed by their name.
+     *
+     * @return The map of rules, keyed by their name.
+     */
     public Map<String, Rules.Rule> getRuleMap() {
         return ruleMap;
     }
 
+    /**
+     * Returns a set of the rule names that the crawler will skip when it encounters them.
+     *
+     * @return A set of the rule names that the crawler will skip when it encounters them.
+     */
     public Set<String> getRulesToSkip() {
         return rulesToSkip;
+    }
+
+    /**
+     * Returns a map of rule elements and the number of times they have been used in
+     * completed statement templates.
+     *
+     * @return A map of rule elements to the number of times they have been used in
+     * completed statement templates.
+     */
+    public Map<Rules.Element, Integer> getElementUsage() {
+        return mapLiteralElementsToUsage;
     }
 
     /**

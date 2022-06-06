@@ -27,7 +27,8 @@ public class RuleListener extends ANTLRv4ParserBaseListener {
     }
 
     public void exitAlternative(ANTLRv4Parser.AlternativeContext ctx) {
-        // TODO: This is a hack and should be handled better
+        // Mark the end of each alternative with a separator element, so we can easily convert
+        // the group to a choice later.
         stackOfElementGroups.peek().elements.add(new Rules.SeparatorElement());
     }
 
@@ -55,12 +56,11 @@ public class RuleListener extends ANTLRv4ParserBaseListener {
     }
 
     public void exitTerminal(ANTLRv4Parser.TerminalContext ctx) {
-        ANTLRv4Parser.TerminalContext foo = (ANTLRv4Parser.TerminalContext) ctx;
         String s;
-        if (foo.STRING_LITERAL() != null) {
-            s = foo.STRING_LITERAL().getText();
+        if (ctx.STRING_LITERAL() != null) {
+            s = ctx.STRING_LITERAL().getText();
         } else {
-            s = foo.TOKEN_REF().getText();
+            s = ctx.TOKEN_REF().getText();
         }
         Rules.LiteralElement literalElement = new Rules.LiteralElement(s);
 

@@ -149,6 +149,15 @@ public class Crawler {
         System.out.println(" - Unused:   " + unusedElements.size());
         System.out.println(" - Frequent: " + frequentlyUsedElements.size());
         System.out.println(" - Coverage: " + String.format("%.02f", (100 * coveragePercent)) + "%");
+        System.out.println();
+
+        if (unusedElements.size() > 0) {
+            System.out.println("Unused Literal Elements:");
+            for (Rules.Element unusedElement : unusedElements) {
+                System.out.println(" - " + unusedElement.getName());
+            }
+            System.out.println();
+        }
     }
 
     //

@@ -62,6 +62,11 @@ public class CrawlStrategies {
 
             if (element instanceof Rules.LiteralElement) {
                 results.add((Rules.LiteralElement) element);
+            } else if (element instanceof Rules.Choice) {
+                Rules.Choice choice = (Rules.Choice) element;
+                for (Rules.Element e : choice.choices) {
+                    findLiteralElements(e, results, visitedElements);
+                }
             } else if (element instanceof Rules.ElementGroup) {
                 Rules.ElementGroup group = (Rules.ElementGroup) element;
                 for (Rules.Element e : group.elements) {

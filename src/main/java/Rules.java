@@ -41,7 +41,7 @@ public class Rules {
 
     // Ebnf represents a choice of elements
     public static class Choice extends Element {
-        private List<Element> choices = new ArrayList<>();
+        public List<Element> choices = new ArrayList<>();
 
         public Choice() {
             super("CHOICE");

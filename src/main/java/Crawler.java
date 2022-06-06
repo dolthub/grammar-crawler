@@ -183,6 +183,9 @@ public class Crawler {
             } else if (element instanceof Rules.ElementGroup) {
                 Rules.ElementGroup group = (Rules.ElementGroup) element;
                 recurseOnElementsToInitializeRuleMap(group.elements);
+            } else if (element instanceof Rules.Choice) {
+                Rules.Choice choice = (Rules.Choice) element;
+                recurseOnElementsToInitializeRuleMap(choice.choices);
             } else if (element instanceof Rules.RuleRefElement) {
                 Rules.RuleRefElement ruleref = (Rules.RuleRefElement) element;
                 Rules.Rule rule = ruleMap.get(ruleref.getName());
@@ -197,7 +200,7 @@ public class Crawler {
     }
 
     private class TemplateStats {
-        // TODO: Crawler doesn't currently have a hook into aborted templates
+        // TODO: Crawler doesn't currently have a hook into aborted templates, so we can't track this yet
         public int abortedTemplates = 0;
         public int completedTemplates = 0;
     }
@@ -294,63 +297,42 @@ public class Crawler {
             }
 
             generatedTemplate.addElement(element);
+        } else if (element instanceof Rules.Choice) {
+            Rules.Choice choice = (Rules.Choice) element;
+
+            boolean firstChoice = true;
+            for (Rules.Element e : choice.choices) {
+                if (crawlStrategy.shouldCrawl(element) == false) continue;
+
+                if (firstChoice) {
+                    // The first choice uses the current template buffer.
+                    // All additional choices get a forked template buffer.
+                    CrawlContext crawlContext = continueCrawl(currentContext, e);
+                    crawlContext.parentPath.addAll(currentContext.parentPath);
+                    firstChoice = false;
+                } else {
+                    // all other choices get a new/forked template buffer
+                    CrawlContext crawlContext = forkCrawl(currentContext, e);
+                    crawlContext.parentPath.addAll(currentContext.parentPath);
+                }
+            }
+
+            // If no paths were selected to be crawled, abort the current crawl path
+            if (firstChoice) currentContext.abort();
+
+            return;
         } else if (element instanceof Rules.ElementGroup) {
             Rules.ElementGroup group = (Rules.ElementGroup) element;
 
-            // TODO: This logic for translating an ElementGroup into a list of choices is super hacky.
-            //       The parser should take care of this when it analyzes the ANTLR grammar and return
-            //       Choice instead of ElementGroup so that we don't have to do any of this here.
-            //       But... this is working now, and not the highest priority to fix.
-            List<Rules.Element> choices = new ArrayList<>();
-            Rules.ElementGroup currentGroup = new Rules.ElementGroup();
-            boolean isChoice = false;
-            for (Rules.Element e : group.elements) {
-                if (e instanceof Rules.SeparatorElement) {
-                    isChoice = true;
-                    choices.add(currentGroup);
-                    currentGroup = new Rules.ElementGroup();
-                } else {
-                    currentGroup.elements.add(e);
-                }
+            CrawlContext newContext = continueCrawl(currentContext, group.elements.get(0));
+            newContext.parentPath.addAll(currentContext.parentPath);
+            for (int i = group.elements.size() - 1; i >= 1; i--) {
+                Rules.Element e = group.elements.get(i);
+                CrawlContext.FutureElementContext futureElementContext = new CrawlContext.FutureElementContext(e);
+                futureElementContext.parentPath.addAll(currentContext.parentPath);
+                newContext.futureElements.push(futureElementContext);
             }
-            if (currentGroup.elements.isEmpty() == false) {
-                choices.add(currentGroup);
-                currentGroup = null;
-            }
-
-            if (isChoice) {
-                boolean firstChoice = true;
-                for (Rules.Element e : choices) {
-                    if (crawlStrategy.shouldCrawl(element) == false) continue;
-
-                    if (firstChoice) {
-                        // The first choice uses the current template buffer.
-                        // All additional choices get a forked template buffer.
-                        CrawlContext crawlContext = continueCrawl(currentContext, e);
-                        crawlContext.parentPath.addAll(currentContext.parentPath);
-                        firstChoice = false;
-                    } else {
-                        // all other choices get a new/forked template buffer
-                        CrawlContext crawlContext = forkCrawl(currentContext, e);
-                        crawlContext.parentPath.addAll(currentContext.parentPath);
-                    }
-                }
-
-                // If the crawl strategy didn't select any choice to crawl, abort the current crawl path
-                if (firstChoice) currentContext.abort();
-
-                return;
-            } else {
-                CrawlContext newContext = continueCrawl(currentContext, group.elements.get(0));
-                newContext.parentPath.addAll(currentContext.parentPath);
-                for (int i = group.elements.size() - 1; i >= 1; i--) {
-                    Rules.Element e = group.elements.get(i);
-                    CrawlContext.FutureElementContext futureElementContext = new CrawlContext.FutureElementContext(e);
-                    futureElementContext.parentPath.addAll(currentContext.parentPath);
-                    newContext.futureElements.push(futureElementContext);
-                }
-                return;
-            }
+            return;
         } else if (element instanceof Rules.RuleRefElement) {
             Rules.RuleRefElement ruleref = (Rules.RuleRefElement) element;
             Rules.Rule rule = ruleMap.get(ruleref.getName());

@@ -172,9 +172,6 @@ public class Crawler {
 
     private void recurseOnElementsToInitializeRuleMap(List<Rules.Element> elements) {
         for (Rules.Element element : elements) {
-            // TODO: This is a hack from how we don't use Choice elements
-            if (element instanceof Rules.SeparatorElement) continue;
-
             if (mapLiteralElementsToUsage.containsKey(element)) continue;
             if (rulesToSkip.contains(element.getName())) continue;
 

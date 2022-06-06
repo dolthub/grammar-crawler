@@ -70,8 +70,6 @@ public class CrawlStrategies {
             } else if (element instanceof Rules.ElementGroup) {
                 Rules.ElementGroup group = (Rules.ElementGroup) element;
                 for (Rules.Element e : group.elements) {
-                    // TODO: Hack for lack of using ElementChoice
-                    if (e instanceof Rules.SeparatorElement) continue;
                     findLiteralElements(e, results, visitedElements);
                 }
             } else if (element instanceof Rules.RuleRefElement) {

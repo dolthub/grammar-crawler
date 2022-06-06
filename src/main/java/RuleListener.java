@@ -83,10 +83,31 @@ public class RuleListener extends ANTLRv4ParserBaseListener {
 
     public void exitBlock(ANTLRv4Parser.BlockContext ctx) {
         Rules.ElementGroup group = stackOfElementGroups.pop();
-        if (group.elements.get(group.elements.size() - 1) instanceof Rules.SeparatorElement) {
-            group.elements.remove(group.elements.size() - 1);
+
+        if (containsSeparatorElement(group)) {
+            Rules.Choice choice = new Rules.Choice();
+            Rules.ElementGroup newGroup = new Rules.ElementGroup();
+            for (Rules.Element element : group.elements) {
+                if (element instanceof Rules.SeparatorElement) {
+                    choice.addElement(newGroup);
+                    newGroup = new Rules.ElementGroup();
+                } else {
+                    newGroup.elements.add(element);
+                }
+            }
+            stackOfElementGroups.peek().elements.add(choice);
+        } else {
+            stackOfElementGroups.peek().elements.add(group);
         }
-        stackOfElementGroups.peek().elements.add(group);
+    }
+
+    private boolean containsSeparatorElement(Rules.ElementGroup group) {
+        for (Rules.Element element : group.elements) {
+            if (element instanceof Rules.SeparatorElement) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void applyEbnfSuffix(ANTLRv4Parser.EbnfSuffixContext ctx, Rules.Element element) {

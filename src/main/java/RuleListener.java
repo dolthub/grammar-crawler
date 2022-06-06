@@ -48,10 +48,14 @@ public class RuleListener extends ANTLRv4ParserBaseListener {
     public void exitLabeledAlt(ANTLRv4Parser.LabeledAltContext ctx) {
         Rules.Alternative alternative = new Rules.Alternative();
         Rules.ElementGroup group = stackOfElementGroups.pop();
-        if (group.elements.get(group.elements.size() - 1) instanceof Rules.SeparatorElement) {
-            group.elements.remove(group.elements.size() - 1);
+
+        if (containsMultipleChoices(group)) {
+            Rules.Choice choice = convertGroupToChoice(group);
+            alternative.elements.add(choice);
+        } else {
+            removeTrailingSeparator(group);
+            alternative.elements.add(group);
         }
-        alternative.elements.add(group);
         currentRuleAlternatives.add(alternative);
     }
 
@@ -84,30 +88,46 @@ public class RuleListener extends ANTLRv4ParserBaseListener {
     public void exitBlock(ANTLRv4Parser.BlockContext ctx) {
         Rules.ElementGroup group = stackOfElementGroups.pop();
 
-        if (containsSeparatorElement(group)) {
-            Rules.Choice choice = new Rules.Choice();
-            Rules.ElementGroup newGroup = new Rules.ElementGroup();
-            for (Rules.Element element : group.elements) {
-                if (element instanceof Rules.SeparatorElement) {
-                    choice.addElement(newGroup);
-                    newGroup = new Rules.ElementGroup();
-                } else {
-                    newGroup.elements.add(element);
-                }
-            }
+        if (containsMultipleChoices(group)) {
+            Rules.Choice choice = convertGroupToChoice(group);
             stackOfElementGroups.peek().elements.add(choice);
         } else {
+            removeTrailingSeparator(group);
             stackOfElementGroups.peek().elements.add(group);
         }
     }
 
-    private boolean containsSeparatorElement(Rules.ElementGroup group) {
+    private void removeTrailingSeparator(Rules.ElementGroup group) {
+        int lastIndex = group.elements.size() - 1;
+        if (group.elements.get(lastIndex) instanceof Rules.SeparatorElement) {
+            group.elements.remove(lastIndex);
+        }
+    }
+
+    private boolean containsMultipleChoices(Rules.ElementGroup group) {
+        // Count the number of separators in the group. We expect one separator
+        // at the end of the group, so if we see more than one, we know we have
+        // multiple choices and should convert this group to a choice.
+        int count = 0;
+        for (Rules.Element element : group.elements) {
+            if (element instanceof Rules.SeparatorElement) count++;
+        }
+        return count >= 2;
+    }
+
+    private Rules.Choice convertGroupToChoice(Rules.ElementGroup group) {
+        Rules.Choice choice = new Rules.Choice();
+        Rules.ElementGroup newGroup = new Rules.ElementGroup();
         for (Rules.Element element : group.elements) {
             if (element instanceof Rules.SeparatorElement) {
-                return true;
+                choice.addElement(newGroup);
+                newGroup = new Rules.ElementGroup();
+            } else {
+                newGroup.elements.add(element);
             }
         }
-        return false;
+
+        return choice;
     }
 
     private void applyEbnfSuffix(ANTLRv4Parser.EbnfSuffixContext ctx, Rules.Element element) {

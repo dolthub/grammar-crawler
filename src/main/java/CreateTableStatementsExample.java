@@ -68,16 +68,10 @@ public class CreateTableStatementsExample {
                 "AUTO_INCREMENT_SYMBOL",
                 "NOW_SYMBOL");
 
-        // TODO: Safe to pull this out now!
-        // TODO: Temporarily disable the SIGNED keyword, until that change lands in a release
-        //       https://github.com/dolthub/vitess/pull/162
-        crawler.addRulesToSkip("SIGNED_SYMBOL");
-
         // Disabling spatial reference IDs
         crawler.addRulesToSkip("SRID_SYMBOL");
 
         crawler.setCrawlStrategy(
-//                CrawlStrategies.RANDOM_CRAWL);
                 new CrawlStrategies.CoverageAwareCrawl(crawler));
 
 

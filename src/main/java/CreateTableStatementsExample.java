@@ -4,13 +4,9 @@ import java.util.*;
 public class CreateTableStatementsExample {
     private static Map<String, Rules.Rule> ruleMap;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
 
-        generateCreateTableStatements();
-    }
-
-    private static void generateCreateTableStatements() throws IOException {
         Crawler crawler = new Crawler(ruleMap);
         crawler.setStatementLimit(50_000);
 

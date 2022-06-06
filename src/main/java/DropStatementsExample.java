@@ -1,15 +1,12 @@
+import java.io.IOException;
 import java.util.Map;
 
 public class DropStatementsExample {
     private static Map<String, Rules.Rule> ruleMap;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
 
-        generateAllDropStatements();
-    }
-
-    private static void generateAllDropStatements() {
         Crawler crawler = new Crawler(ruleMap);
         Rules.Rule rule = ruleMap.get("dropStatement");
 

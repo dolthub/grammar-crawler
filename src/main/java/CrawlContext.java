@@ -1,7 +1,30 @@
+// Copyright 2022 Dolthub, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+/**
+ * CrawlContext contains the complete context for an in-progress crawl through a grammar, including: the next element
+ * to process, the in-progress template buffer, the stack of future elements to process, and instructions on whether
+ * optional elements should be included in this path.
+ * <p>
+ * As the Crawler crawls the grammar, it pushes new CrawlContext objects into a datastructure to process. When conditional
+ * choices in the grammar are encountered, depending on the CrawlStrategy, the Crawler will push multiple CrawlContext
+ * objects into this data structure so that multiple paths can be traversed.
+ */
 class CrawlContext {
     public Stack<FutureElementContext> futureElements = new Stack<>();
     public TemplateBuffer generatedTemplate;

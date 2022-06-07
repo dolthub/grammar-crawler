@@ -1,3 +1,17 @@
+// Copyright 2022 Dolthub, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import java.util.*;
 
 public class Crawler {
@@ -371,24 +385,18 @@ public class Crawler {
             throw new RuntimeException("Unexpected element type: " + element.getClass());
         }
 
-        // TODO: These don't ever even get here because of all the early returns
+        // TODO: Add support for "zero or more" and "one or more" repeating elements. Currently the code paths
+        //       above all exit before this block (except for Rule.Literal), but ideally we would generate
+        //       multiple paths through the grammar that exercise these options.
         if (element.isRepeated()) { // *
-            // TODO: For any-number-of-times elements... we want to generate:
-            //       one template form without the repeated element
-            //       one template form with the repeated element once
-            //       one template form with the repeated element twice
-            // TODO: Processing each element once by default, but controllable through CrawlContext
-            //          crawlContext.processCount = 2;
-            //          crawlContext.processCount = 0;
-            ///      That could enable this code to be pulled up to the start of this method, with optional handling
+            // Include zero-or-more elements exactly one time (for now)
         } else if (element.isOnceOrMore()) { // +
-            // include once-or-more elements just once, for now
-            // TODO: for once-or-more elements, we want to generate:
-            //       one template form with the element included once
-            //       one template form with the element included twice
+            // Include once-or-more elements exactly one time (for now)
         }
 
         // Queue up the next element to be processed from our stack
+        // TODO: Only Rule.Literal reaches this point before returning. Clean up the control flow
+        //       in this overly large method to make it easier to work with.
         if (currentContext.futureElements.isEmpty()) {
             // At this point, we know a template should be fully complete
             statementCompleted(currentContext.generatedTemplate);

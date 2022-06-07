@@ -16,6 +16,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+/**
+ * Implementation of StatementWriter that produces test files ready to be read in by
+ * SqlLogicTest. See https://www.sqlite.org/sqllogictest/doc/trunk/about.wiki for more info
+ * on the test file format.
+ */
 public class SQLLogicProtoStatementWriter implements StatementWriter {
     private FileWriter fileWriter;
 

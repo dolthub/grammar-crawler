@@ -16,6 +16,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * A TemplateBuffer holds the elements being built up for an in-progress statement being generated
+ * by the Grammar Crawler. When toString() is called, the buffered elements are reified into a concrete
+ * statement that should execute correctly.
+ */
 public class TemplateBuffer {
     boolean aborted = false;
     List<Rules.Element> elements = new ArrayList<>();
@@ -64,8 +69,7 @@ public class TemplateBuffer {
             }
         }
         String s = String.join(" ", strings) + ";";
-        s = StatementReifier.postProcessStatement(s);
-        return s;
+        return StatementReifier.postProcessStatement(s);
     }
 
     private String quoteString(String translated) {

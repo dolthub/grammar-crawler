@@ -15,6 +15,9 @@
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Rules contain the model for a parsed grammar.
+ */
 public class Rules {
     public static class Rule {
         public String name;
@@ -167,5 +170,4 @@ public class Rules {
             super(s);
         }
     }
-    // TODO: Move this up a level, then move all Rule/Alternatives/Elements to this new class?
 }

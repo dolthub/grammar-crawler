@@ -19,6 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+/**
+ * ANTLR parser listener implementation that converts the raw ANTLR grammar model into an easier to work with
+ * representation, using the model from the Rules class.
+ */
 public class RuleListener extends ANTLRv4ParserBaseListener {
     private Rules.Rule currentRule;
 

@@ -149,9 +149,9 @@ public class Crawler {
         List<Rules.Element> frequentlyUsedElements = new LinkedList<>();
 
         for (Rules.Element element : mapLiteralElementsToUsage.keySet()) {
-            int usage = mapLiteralElementsToUsage.get(element);
-            if (usage == 0) unusedElements.add(element);
-            else if (usage > 100) frequentlyUsedElements.add(element);
+            int usageCount = mapLiteralElementsToUsage.get(element);
+            if (usageCount == 0) unusedElements.add(element);
+            else if (usageCount > 100) frequentlyUsedElements.add(element);
         }
 
         int totalLiteralElementCount = mapLiteralElementsToUsage.size();

@@ -342,25 +342,30 @@ public class Crawler {
         } else if (element instanceof Rules.Choice) {
             Rules.Choice choice = (Rules.Choice) element;
 
-            boolean firstChoice = true;
+            boolean noChoiceSelected = true;
             for (Rules.Element e : choice.choices) {
                 if (crawlStrategy.shouldCrawl(element) == false) continue;
 
-                if (firstChoice) {
+                if (noChoiceSelected) {
                     // The first choice uses the current template buffer.
                     // All additional choices get a forked template buffer.
                     CrawlContext crawlContext = continueCrawl(currentContext, e);
                     crawlContext.parentPath.addAll(currentContext.parentPath);
-                    firstChoice = false;
+                    noChoiceSelected = false;
                 } else {
                     // all other choices get a new/forked template buffer
                     CrawlContext crawlContext = forkCrawl(currentContext, e);
                     crawlContext.parentPath.addAll(currentContext.parentPath);
                 }
             }
-
-            // If no paths were selected to be crawled, abort the current crawl path
-            if (firstChoice) currentContext.abort();
+            // If no choice was selected, pick one choice to continue crawling. This is better than aborting
+            // the in-progress path since it might include literal tokens that we want coverage over.
+            if (noChoiceSelected) {
+                int randomIndex = (int) Math.floor(Math.random() * (choice.choices.size()));
+                CrawlContext crawlContext = continueCrawl(currentContext, choice.choices.get(randomIndex));
+                crawlContext.parentPath.addAll(currentContext.parentPath);
+                noChoiceSelected = false;
+            }
 
             return;
         } else if (element instanceof Rules.ElementGroup) {

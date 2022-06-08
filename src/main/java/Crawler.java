@@ -178,36 +178,67 @@ public class Crawler {
     // Private Interface
     //
 
+    /**
+     * Traverses the specified grammar rule to find all reachable literal elements and records those
+     * in the usage map.
+     *
+     * @param rule The grammar rule to traverse.
+     */
     private void initializeUsageMap(Rules.Rule rule) {
         for (Rules.Alternative alternative : rule.alternatives) {
-            recurseOnElementsToInitializeRuleMap(alternative.elements);
+            for (Rules.LiteralElement literalElement : findReachableLiteralElements(alternative.elements)) {
+                mapLiteralElementsToUsage.put(literalElement, 0);
+            }
         }
     }
 
-    private void recurseOnElementsToInitializeRuleMap(List<Rules.Element> elements) {
+    private Set<Rules.LiteralElement> findReachableLiteralElements(Rules.Element element) {
+        List<Rules.Element> elements = new ArrayList<>();
+        elements.add(element);
+        return findReachableLiteralElements(elements);
+    }
+
+    private Set<Rules.LiteralElement> findReachableLiteralElements(List<Rules.Element> elements) {
+        Set<Rules.LiteralElement> foundLiteralElements = new HashSet<>();
+
         for (Rules.Element element : elements) {
             if (mapLiteralElementsToUsage.containsKey(element)) continue;
-            if (rulesToSkip.contains(element.getName())) continue;
 
+            // If we find a pruned rule, we need to stop processing all other rules in this group,
+            // since they won't be reachable, and return an empty set instead of any elements we've
+            // already identified since this path is a dead end.
+            if (rulesToSkip.contains(element.getName())) return new HashSet<>();
+
+            // TODO: is this pretty much the same logic as CoverageAwareCrawler uses to find literals?
             if (element instanceof Rules.LiteralElement) {
-                mapLiteralElementsToUsage.put(element, 0);
+                foundLiteralElements.add((Rules.LiteralElement) element);
             } else if (element instanceof Rules.ElementGroup) {
                 Rules.ElementGroup group = (Rules.ElementGroup) element;
-                recurseOnElementsToInitializeRuleMap(group.elements);
+                Set<Rules.LiteralElement> foundElements = findReachableLiteralElements(group.elements);
+                foundLiteralElements.addAll(foundElements);
             } else if (element instanceof Rules.Choice) {
                 Rules.Choice choice = (Rules.Choice) element;
-                recurseOnElementsToInitializeRuleMap(choice.choices);
+                // Recurse on each individual choice separately, unlike with ElementGroup, since each choice
+                // represents a different option and needs to be looked at independently. e.g. when looking
+                // for pruned paths, we need to discard the whole ElementGroup, but only a single Choice.
+                for (Rules.Element choiceElement : choice.choices) {
+                    Set<Rules.LiteralElement> foundElements = findReachableLiteralElements(choiceElement);
+                    foundLiteralElements.addAll(foundElements);
+                }
             } else if (element instanceof Rules.RuleRefElement) {
                 Rules.RuleRefElement ruleref = (Rules.RuleRefElement) element;
                 Rules.Rule rule = ruleMap.get(ruleref.getName());
                 // TODO: Eventually we should also track the used rules
                 for (Rules.Alternative alternative : rule.alternatives) {
-                    recurseOnElementsToInitializeRuleMap(alternative.elements);
+                    Set<Rules.LiteralElement> foundElements = findReachableLiteralElements(alternative.elements);
+                    foundLiteralElements.addAll(foundElements);
                 }
             } else {
                 throw new RuntimeException("Unexpected element type: " + element.getClass());
             }
         }
+
+        return foundLiteralElements;
     }
 
     private class TemplateStats {

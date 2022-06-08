@@ -44,7 +44,6 @@ public class CrawlStrategies {
 
     @SuppressWarnings("ClassCanBeRecord")
     public static class CoverageAwareCrawl implements CrawlStrategy {
-
         private final Crawler crawler;
 
         public CoverageAwareCrawl(Crawler crawler) {
@@ -68,8 +67,7 @@ public class CrawlStrategies {
         private Set<Rules.LiteralElement> findLiteralElements(Rules.Element element) {
             // TODO: Consider moving this crawling logic to Crawler
             Set<Rules.LiteralElement> results = new HashSet<>();
-            Set<Rules.Element> visitedElements = new HashSet<>();
-            findLiteralElements(element, results, visitedElements);
+            findLiteralElements(element, results, new HashSet<Rules.Element>());
             return results;
         }
 

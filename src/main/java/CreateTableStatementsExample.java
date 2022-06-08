@@ -45,10 +45,7 @@ public class CreateTableStatementsExample {
 
         // Supporting expressions requires smarter logic for filling in
         // identifiers and type information in order to generate valid expressions
-        crawler.addRulesToSkip("expr",
-                "queryExpression",
-                "queryExpressionOrParens");
-
+        crawler.addRulesToSkip("expr", "queryExpression", "queryExpressionOrParens");
 
         // COLUMN_FORMAT is a feature of MySQL NDB Cluster that allows you to specify a data storage format
         // for individual columns. MySQL silently ignores COLUMN_FORMAT for all other engine types.

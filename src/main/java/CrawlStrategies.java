@@ -42,6 +42,7 @@ public class CrawlStrategies {
         }
     }
 
+    @SuppressWarnings("ClassCanBeRecord")
     public static class CoverageAwareCrawl implements CrawlStrategy {
 
         private final Crawler crawler;
@@ -91,8 +92,8 @@ public class CrawlStrategies {
                     findLiteralElements(e, results, visitedElements);
                 }
             } else if (element instanceof Rules.RuleRefElement) {
-                Rules.RuleRefElement ruleref = (Rules.RuleRefElement) element;
-                Rules.Rule rule = crawler.getRuleMap().get(ruleref.getName());
+                Rules.RuleRefElement ruleRef = (Rules.RuleRefElement) element;
+                Rules.Rule rule = crawler.getRuleMap().get(ruleRef.getName());
                 for (Rules.Alternative alternative : rule.alternatives) {
                     for (Rules.Element e : alternative.elements) {
                         findLiteralElements(e, results, visitedElements);

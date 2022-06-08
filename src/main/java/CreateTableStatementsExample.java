@@ -34,8 +34,8 @@ public class CreateTableStatementsExample {
         crawler.addRulesToSkip("createTableOptions"); // TODO: We should turn this on soon
 
         // We should add support for constraints and indexes, but that will require
-        // knowledge of type information and table schema when generating statements and
-        // when plugging in identifiers.
+        // knowledge of type information and table schema when generating statements
+        // and plugging in identifiers.
         crawler.addRulesToSkip(
                 "tableConstraintDef",
                 "spatialIndexOption",
@@ -77,12 +77,11 @@ public class CreateTableStatementsExample {
                 "NOW_SYMBOL");
 
         // Disabling spatial reference IDs
+        // TODO: SRIDs are now supported in Dolt; plugging this in requires updates to reification
+        //       to select a valid SRID value and to make sure it is only used for geometry types.
         crawler.addRulesToSkip("SRID_SYMBOL");
 
-        crawler.setCrawlStrategy(
-                new CrawlStrategies.CoverageAwareCrawl(crawler));
-
-
+        crawler.setCrawlStrategy(new CrawlStrategies.CoverageAwareCrawl(crawler));
         crawler.setStatementPrefix("CREATE ");
         crawler.setStatementWriters(
                 new StdOutStatementWriter(),

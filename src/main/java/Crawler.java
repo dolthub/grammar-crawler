@@ -171,6 +171,19 @@ public class Crawler {
         }
     }
 
+    /**
+     * Helper method for traversing the grammar from a starting element and returning a set of reachable
+     * literal element names.
+     *
+     * @param element The element in the grammar indicating where to start searching.
+     * @return A set of reachable literal element names.
+     */
+    public Set<String> findReachableLiteralElements(Rules.Element element) {
+        List<Rules.Element> elements = new ArrayList<>();
+        elements.add(element);
+        return findReachableLiteralElements(elements);
+    }
+
     //
     // Private Interface
     //
@@ -189,18 +202,10 @@ public class Crawler {
         }
     }
 
-    private Set<String> findReachableLiteralElements(Rules.Element element) {
-        List<Rules.Element> elements = new ArrayList<>();
-        elements.add(element);
-        return findReachableLiteralElements(elements);
-    }
-
     private Set<String> findReachableLiteralElements(List<Rules.Element> elements) {
         Set<String> foundLiteralElements = new HashSet<>();
 
         for (Rules.Element element : elements) {
-            if (mapLiteralElementsToUsage.containsKey(element)) continue;
-
             // If we find a pruned rule, we need to stop processing all other rules in this group,
             // since they won't be reachable, and return an empty set instead of any elements we've
             // already identified since this path is a dead end.

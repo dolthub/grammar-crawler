@@ -54,19 +54,19 @@ public class CrawlStrategies {
         public boolean shouldCrawl(Rules.Element element) {
             // If the current element is parent of literal elements that we haven't
             // used in completed expressions yet, then crawl to increase coverage.
-            Set<Rules.LiteralElement> literalElements = findLiteralElements(element);
-            for (Rules.LiteralElement literalElement : literalElements) {
+            Set<String> literalElementNames = findLiteralElements(element);
+            for (String literalElementName : literalElementNames) {
                 // If we don't have usage info for an element, it means the crawler thinks this element
                 // isn't reachable with the current pruned rules, so just continue to the next literal.
                 // This can happen if an element that follows this current element is pruned.
                 //
                 // TODO: Switching to use the same logic to detect what literals are reachable as in Crawler,
                 //       should make this disappear.
-                if (crawler.getElementUsage().get(literalElement.getName()) == null) {
+                if (crawler.getElementUsage().get(literalElementName) == null) {
                     continue;
                 }
 
-                if (crawler.getElementUsage().get(literalElement.getName()) == 0) return true;
+                if (crawler.getElementUsage().get(literalElementName) == 0) return true;
             }
 
             // Otherwise, if a rule contains only literal elements that we've already
@@ -74,21 +74,21 @@ public class CrawlStrategies {
             return Math.random() < 0.33;
         }
 
-        private Set<Rules.LiteralElement> findLiteralElements(Rules.Element element) {
+        private Set<String> findLiteralElements(Rules.Element element) {
             // TODO: Consider moving this crawling logic to Crawler
-            Set<Rules.LiteralElement> results = new HashSet<>();
+            Set<String> results = new HashSet<>();
             findLiteralElements(element, results, new HashSet<Rules.Element>());
             return results;
         }
 
-        private void findLiteralElements(Rules.Element element, Set<Rules.LiteralElement> results, Set<Rules.Element> visitedElements) {
+        private void findLiteralElements(Rules.Element element, Set<String> results, Set<Rules.Element> visitedElements) {
             if (visitedElements.contains(element)) return;
             visitedElements.add(element);
 
             if (crawler.getRulesToSkip().contains(element.getName())) return;
 
             if (element instanceof Rules.LiteralElement) {
-                results.add((Rules.LiteralElement) element);
+                results.add(element.getName());
             } else if (element instanceof Rules.Choice) {
                 Rules.Choice choice = (Rules.Choice) element;
                 for (Rules.Element e : choice.choices) {

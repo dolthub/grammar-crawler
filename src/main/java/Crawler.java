@@ -297,12 +297,13 @@ public class Crawler {
     }
 
     private void updateLiteralElementUsage(TemplateBuffer generatedTemplate) {
-        // TODO: This is only going to track the usage of LiteralElements, since
-        //       that's all TemplateBuffer will ever contain (the leaf nodes in the graph).
         for (Rules.Element element : generatedTemplate.elements) {
-            if (mapLiteralElementsToUsage.containsKey(element) == false) {
-                throw new RuntimeException("Element not found in usage map!" + element);
+            if (mapLiteralElementsToUsage.containsKey(element.getName()) == false) {
+                // If a completed statement includes literal elements that our reachability logic
+                // didn't detect, it means there must be a bug in the reachability calculation logic.
+                throw new RuntimeException("Element not found in usage map:" + element);
             }
+            int usage = mapLiteralElementsToUsage.get(element.getName()) + 1;
             mapLiteralElementsToUsage.put(element.getName(), usage);
         }
     }

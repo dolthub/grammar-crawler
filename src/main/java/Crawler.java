@@ -204,7 +204,13 @@ public class Crawler {
             // If we find a pruned rule, we need to stop processing all other rules in this group,
             // since they won't be reachable, and return an empty set instead of any elements we've
             // already identified since this path is a dead end.
-            if (rulesToSkip.contains(element.getName())) return new HashSet<>();
+            if (rulesToSkip.contains(element.getName())) {
+                // If the element is optional, then continue processing along this path. Otherwise, return
+                // an empty set since we can't process this path without including the pruned rule, so any
+                // collected results are not actually reachable.
+                if (element.isOptional() || element.isRepeated()) continue;
+                else return new HashSet<>();
+            }
 
             // TODO: is this pretty much the same logic as CoverageAwareCrawler uses to find literals?
             if (element instanceof Rules.LiteralElement) {

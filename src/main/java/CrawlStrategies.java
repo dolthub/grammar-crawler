@@ -56,7 +56,17 @@ public class CrawlStrategies {
             // used in completed expressions yet, then crawl to increase coverage.
             Set<Rules.LiteralElement> literalElements = findLiteralElements(element);
             for (Rules.LiteralElement literalElement : literalElements) {
-                if (crawler.getElementUsage().get(literalElement) == 0) return true;
+                // If we don't have usage info for an element, it means the crawler thinks this element
+                // isn't reachable with the current pruned rules, so just continue to the next literal.
+                // This can happen if an element that follows this current element is pruned.
+                //
+                // TODO: Switching to use the same logic to detect what literals are reachable as in Crawler,
+                //       should make this disappear.
+                if (crawler.getElementUsage().get(literalElement.getName()) == null) {
+                    continue;
+                }
+
+                if (crawler.getElementUsage().get(literalElement.getName()) == 0) return true;
             }
 
             // Otherwise, if a rule contains only literal elements that we've already

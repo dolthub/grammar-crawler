@@ -23,7 +23,7 @@ public class Crawler {
     private TemplateStats templateStats = new TemplateStats();
     private int statementLimit = -1;
     private StatementWriter[] writers;
-    private Map<Rules.Element, Integer> mapLiteralElementsToUsage = new HashMap<>();
+    private Map<String, Integer> mapLiteralElementsToUsage = new HashMap<>();
 
 
     /**
@@ -54,13 +54,13 @@ public class Crawler {
     }
 
     /**
-     * Returns a map of rule elements and the number of times they have been used in
+     * Returns a map of literal element names and the number of times they have been used in
      * completed statement templates.
      *
-     * @return A map of rule elements to the number of times they have been used in
+     * @return A map of literal element names to the number of times they have been used in
      * completed statement templates.
      */
-    public Map<Rules.Element, Integer> getElementUsage() {
+    public Map<String, Integer> getElementUsage() {
         return mapLiteralElementsToUsage;
     }
 
@@ -145,13 +145,11 @@ public class Crawler {
      * total available leaf nodes in the grammar's graph.
      */
     public void printCoverageStats() {
-        List<Rules.Element> unusedElements = new LinkedList<>();
-        List<Rules.Element> frequentlyUsedElements = new LinkedList<>();
+        List<String> unusedElements = new LinkedList<>();
 
-        for (Rules.Element element : mapLiteralElementsToUsage.keySet()) {
+        for (String element : mapLiteralElementsToUsage.keySet()) {
             int usageCount = mapLiteralElementsToUsage.get(element);
             if (usageCount == 0) unusedElements.add(element);
-            else if (usageCount > 100) frequentlyUsedElements.add(element);
         }
 
         int totalLiteralElementCount = mapLiteralElementsToUsage.size();
@@ -161,14 +159,13 @@ public class Crawler {
         System.out.println(" - Total:    " + totalLiteralElementCount);
         System.out.println(" - Used:     " + usedLiteralElementCount);
         System.out.println(" - Unused:   " + unusedElements.size());
-        System.out.println(" - Frequent: " + frequentlyUsedElements.size());
         System.out.println(" - Coverage: " + String.format("%.02f", (100 * coveragePercent)) + "%");
         System.out.println();
 
         if (unusedElements.size() > 0) {
             System.out.println("Unused Literal Elements:");
-            for (Rules.Element unusedElement : unusedElements) {
-                System.out.println(" - " + unusedElement.getName());
+            for (String unusedElement : unusedElements) {
+                System.out.println(" - " + unusedElement);
             }
             System.out.println();
         }
@@ -186,20 +183,20 @@ public class Crawler {
      */
     private void initializeUsageMap(Rules.Rule rule) {
         for (Rules.Alternative alternative : rule.alternatives) {
-            for (Rules.LiteralElement literalElement : findReachableLiteralElements(alternative.elements)) {
+            for (String literalElement : findReachableLiteralElements(alternative.elements)) {
                 mapLiteralElementsToUsage.put(literalElement, 0);
             }
         }
     }
 
-    private Set<Rules.LiteralElement> findReachableLiteralElements(Rules.Element element) {
+    private Set<String> findReachableLiteralElements(Rules.Element element) {
         List<Rules.Element> elements = new ArrayList<>();
         elements.add(element);
         return findReachableLiteralElements(elements);
     }
 
-    private Set<Rules.LiteralElement> findReachableLiteralElements(List<Rules.Element> elements) {
-        Set<Rules.LiteralElement> foundLiteralElements = new HashSet<>();
+    private Set<String> findReachableLiteralElements(List<Rules.Element> elements) {
+        Set<String> foundLiteralElements = new HashSet<>();
 
         for (Rules.Element element : elements) {
             if (mapLiteralElementsToUsage.containsKey(element)) continue;
@@ -211,10 +208,10 @@ public class Crawler {
 
             // TODO: is this pretty much the same logic as CoverageAwareCrawler uses to find literals?
             if (element instanceof Rules.LiteralElement) {
-                foundLiteralElements.add((Rules.LiteralElement) element);
+                foundLiteralElements.add(element.getName());
             } else if (element instanceof Rules.ElementGroup) {
                 Rules.ElementGroup group = (Rules.ElementGroup) element;
-                Set<Rules.LiteralElement> foundElements = findReachableLiteralElements(group.elements);
+                Set<String> foundElements = findReachableLiteralElements(group.elements);
                 foundLiteralElements.addAll(foundElements);
             } else if (element instanceof Rules.Choice) {
                 Rules.Choice choice = (Rules.Choice) element;
@@ -222,7 +219,7 @@ public class Crawler {
                 // represents a different option and needs to be looked at independently. e.g. when looking
                 // for pruned paths, we need to discard the whole ElementGroup, but only a single Choice.
                 for (Rules.Element choiceElement : choice.choices) {
-                    Set<Rules.LiteralElement> foundElements = findReachableLiteralElements(choiceElement);
+                    Set<String> foundElements = findReachableLiteralElements(choiceElement);
                     foundLiteralElements.addAll(foundElements);
                 }
             } else if (element instanceof Rules.RuleRefElement) {
@@ -230,7 +227,7 @@ public class Crawler {
                 Rules.Rule rule = ruleMap.get(ruleref.getName());
                 // TODO: Eventually we should also track the used rules
                 for (Rules.Alternative alternative : rule.alternatives) {
-                    Set<Rules.LiteralElement> foundElements = findReachableLiteralElements(alternative.elements);
+                    Set<String> foundElements = findReachableLiteralElements(alternative.elements);
                     foundLiteralElements.addAll(foundElements);
                 }
             } else {
@@ -300,8 +297,7 @@ public class Crawler {
             if (mapLiteralElementsToUsage.containsKey(element) == false) {
                 throw new RuntimeException("Element not found in usage map!" + element);
             }
-            int usage = mapLiteralElementsToUsage.get(element) + 1;
-            mapLiteralElementsToUsage.put(element, usage);
+            mapLiteralElementsToUsage.put(element.getName(), usage);
         }
     }
 

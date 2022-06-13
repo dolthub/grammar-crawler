@@ -1,29 +1,32 @@
-# mysql-grammar-crawler
+# Grammar Crawler
 
-MySQL Grammar Crawler is a configurable SQL fuzzer that works by crawling the
-[MySQL 8 ANTLR grammar maintained as part of Oracle's MySQL Workbench project](https://github.com/mysql/mysql-workbench/blob/8.0/library/parsers/grammars/MySQLParser.g4)
-to generate a wide variety of statements with valid MySQL syntax. It was built to help expand the testing
-for [Dolt DB](https://doltdb.com/) and to help measure compliance with MySQL's syntax. Generated statements are fed
-into a fork of [SqlLogicTest](https://github.com/dolthub/sqllogictest) and then those statements are
-run against Dolt DB as part of nightly test runs. Grammar crawler is still in early development, but has already helped
-identify gaps in Dolt DB's MySQL syntax compliance.
+Grammar Crawler is a configurable SQL fuzzer that works by crawling an ANTLR4 grammar to generate a wide variety of
+statements with valid syntax. It is database-agnostic, but ships with a copy of
+the [MySQL 8 ANTLR grammar from Oracle's MySQL Workbench project](https://github.com/mysql/mysql-workbench/blob/8.0/library/parsers/grammars/MySQLParser.g4)
+to facilitate testing with MySQL's grammar.
+
+Grammar Crawler was built to help expand the testing for [Dolt DB](https://doltdb.com/) and to help measure compliance
+with MySQL's syntax. Generated statements from Grammar Crawler are fed into a fork
+of [SqlLogicTest](https://github.com/dolthub/sqllogictest) to validate them against MySQL, and then all successful
+statements are added to the set of test statements that run against Dolt DB as part of nightly test runs. Grammar
+crawler is still in early development, but has already helped identify gaps in Dolt DB's MySQL syntax compliance.
 
 ## Why build another SQL fuzzer?
 
 SQL statement fuzzing is a well-established technique and there are many existing SQL fuzzers that are popular and work
 well. At DoltHub, we already use multiple tools with fuzzing features as part of our testing (i.e. SqlLogicTest,
-DoltHub/fuzzer); mysql-grammar-crawler takes a different approach and compliments those existing tools.
-MySQL-Grammar-Crawler exploits the fact that there is a fully defined grammar for the syntax we want to support, and
-allows us to very thoroughly explore that space.
+DoltHub/fuzzer); Grammar Crawler takes a different approach and compliments those existing tools.
+It exploits the fact that there is a fully defined grammar for the syntax we want to support, and
+allows us to thoroughly explore that space.
 
 # Get Crawling 🐛
 
-Before we cover any more details, let's see some quick examples of the grammar crawler in action...
+Before we cover any more details, let's see some quick examples of Grammar Crawler in action...
 
 ## Example: Generate All Drop Statements
 
 This first example shows how to configure the crawler to perform a complete crawl on the `dropStatement` rule in the
-MySQL grammar, with just a few rules skipped, completed statements output to stdout, and summary statistics are printed
+MySQL grammar, with just a few rules skipped, completed statements output to stdout, and summary statistics printed
 out at the end.
 
 Open up the `DropStatementsExample` class in the repo, run the `main` method, and you'll see results like this:
@@ -91,14 +94,15 @@ graph to crawl, the maximum number of statements to generate, the output format 
 
 The crawler supports three crawl strategies:
 
-* Full Crawl – every path through the grammar graph will be explored, with some caveats (e.g. cycles are detected and
-  skipped). This mode works well for small grammars or small subsets of a grammar, but can quickly produce a LOT of
+* **Full Crawl** – every path through the grammar graph will be explored, with some caveats (e.g. cycles are detected
+  and skipped). This mode works well for small grammars or small subsets of a grammar, but can quickly produce a LOT of
   generated statement templates.
-* Random Crawl – this naieve random crawl strategy will randomly select whether or not to continue crawling a path in
-  the grammar graph. This is useful when you have a large solution space and only want a sample of generated statements.
-* Coverage Aware Crawl – this crawl strategy uses information from the crawler on which literal elements have been used
-  in completed statements and attempts to maximize coverage of the grammar by preferring paths through the grammar that
-  will include unused literal elements.
+* **Random Crawl** – this naieve random crawl strategy will randomly select whether or not to continue crawling a path
+  in the grammar graph. This is useful when you have a large solution space and only want a sample of generated
+  statements.
+* **Coverage-Aware Crawl** – this crawl strategy uses information from the crawler on which literal elements have been
+  used in completed statements and attempts to maximize coverage of the grammar by preferring paths through the grammar
+  that will include unused literal elements.
 
 ## Reification
 

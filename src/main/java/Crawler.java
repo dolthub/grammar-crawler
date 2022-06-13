@@ -379,15 +379,17 @@ public class Crawler {
         } else if (element instanceof Rules.ElementGroup) {
             Rules.ElementGroup group = (Rules.ElementGroup) element;
 
-            CrawlContext newContext = continueCrawl(currentContext, group.elements.get(0));
-            newContext.parentPath.addAll(currentContext.parentPath);
-            for (int i = group.elements.size() - 1; i >= 1; i--) {
-                Rules.Element e = group.elements.get(i);
-                CrawlContext.FutureElementContext futureElementContext = new CrawlContext.FutureElementContext(e);
-                futureElementContext.parentPath.addAll(currentContext.parentPath);
-                newContext.futureElements.push(futureElementContext);
+            if (group.elements.isEmpty() == false) {
+                CrawlContext newContext = continueCrawl(currentContext, group.elements.get(0));
+                newContext.parentPath.addAll(currentContext.parentPath);
+                for (int i = group.elements.size() - 1; i >= 1; i--) {
+                    Rules.Element e = group.elements.get(i);
+                    CrawlContext.FutureElementContext futureElementContext = new CrawlContext.FutureElementContext(e);
+                    futureElementContext.parentPath.addAll(currentContext.parentPath);
+                    newContext.futureElements.push(futureElementContext);
+                }
+                return;
             }
-            return;
         } else if (element instanceof Rules.RuleRefElement) {
             Rules.RuleRefElement ruleref = (Rules.RuleRefElement) element;
             Rules.Rule rule = ruleMap.get(ruleref.getName());
@@ -439,8 +441,6 @@ public class Crawler {
         }
 
         // Queue up the next element to be processed from our stack
-        // TODO: Only Rule.Literal reaches this point before returning. Clean up the control flow
-        //       in this overly large method to make it easier to work with.
         if (currentContext.futureElements.isEmpty()) {
             // At this point, we know a template should be fully complete
             statementCompleted(currentContext.generatedTemplate);

@@ -15,7 +15,7 @@
 import java.io.IOException;
 import java.util.Map;
 
-public class DropStatementsExample {
+public class DropStatementsGenerator {
     public static void main(String[] args) throws IOException {
         Map<String, Rules.Rule> ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
 

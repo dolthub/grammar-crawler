@@ -20,7 +20,7 @@ public class CreateTableStatementsExample {
         Map<String, Rules.Rule> ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
 
         Crawler crawler = new Crawler(ruleMap);
-        crawler.setStatementLimit(50_000);
+        crawler.setStatementLimit(1_000_000);
 
         // Skipping these rules to simplify the output and to make it easier to plug in identifier tokens
         // DOUBLE_QUOTED_TEXT generates double-quoted strings for column names, which MySQL doesn't actually allow.
@@ -31,7 +31,6 @@ public class CreateTableStatementsExample {
 
         // Disabling these to limit crawler's output for CreateTable
         crawler.addRulesToSkip("partitionClause");    // TODO: Can we turn this back on?
-        crawler.addRulesToSkip("createTableOptions"); // TODO: We should turn this on soon
 
         // We should add support for constraints and indexes, but that will require
         // knowledge of type information and table schema when generating statements

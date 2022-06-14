@@ -14,8 +14,10 @@ crawler is still in early development, but has already helped identify gaps in D
 ## Why build another SQL fuzzer?
 
 SQL statement fuzzing is a well-established technique and there are many existing SQL fuzzers that are popular and work
-well. At DoltHub, we already use multiple tools with fuzzing features as part of our testing (i.e. SqlLogicTest,
-DoltHub/fuzzer); Grammar Crawler takes a different approach and compliments those existing tools.
+well. At DoltHub, we already use multiple tools with fuzzing features as part of our testing (
+i.e. [SqlLogicTest](https://github.com/dolthub/sqllogictest),
+[DoltHub/fuzzer](https://github.com/dolthub/fuzzer)); Grammar Crawler takes a different approach and compliments those
+existing tools.
 It exploits the fact that there is a fully defined grammar for the syntax we want to support, and
 allows us to thoroughly explore that space.
 

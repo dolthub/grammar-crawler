@@ -24,6 +24,8 @@ public class Crawler {
     private int statementLimit = -1;
     private StatementWriters.StatementWriter[] writers;
     private Map<String, Integer> mapLiteralElementsToUsage = new HashMap<>();
+    private StatementValidators.StatementValidator statementValidator = null;
+    private StatementWriters.StatementWriter invalidStatementWriter = null;
 
 
     /**
@@ -80,6 +82,25 @@ public class Crawler {
      */
     public void setStatementWriters(StatementWriters.StatementWriter... writers) {
         this.writers = writers;
+    }
+
+    /**
+     * Sets the optional validator that will be run on generated statements.
+     *
+     * @param validator The optional validator to use when testing/validating a generated statement.
+     */
+    public void setStatementValidator(StatementValidators.StatementValidator validator) {
+        this.statementValidator = validator;
+    }
+
+    /**
+     * Sets the optional statement writer to use for invalid statements. If a validator is configured, any
+     * statements that don't pass the validator will be sent to this optional statement writer if one is set.
+     *
+     * @param writer The statement writer to which to send all invalid statements.
+     */
+    public void setInvalidStatementWriter(StatementWriters.StatementWriter writer) {
+        this.invalidStatementWriter = writer;
     }
 
     /**
@@ -296,11 +317,19 @@ public class Crawler {
     }
 
     private void statementCompleted(TemplateBuffer generatedTemplate) {
-        templateStats.completedTemplates++;
-        updateLiteralElementUsage(generatedTemplate);
+        String statement = StatementReifier.reifyStatement(prefix, generatedTemplate);
 
-        String s = StatementReifier.reifyStatement(prefix, generatedTemplate);
-        for (StatementWriter writer : writers) writer.write(s);
+        StatementValidators.StatementValidator validator = statementValidator != null
+                ? statementValidator : new StatementValidators.NoOpStatementValidator();
+
+        if (validator.validateStatement(statement)) {
+            for (StatementWriters.StatementWriter writer : writers) writer.write(statement);
+
+            templateStats.completedTemplates++;
+            updateLiteralElementUsage(generatedTemplate);
+        } else {
+            for (StatementWriters.StatementWriter writer : writers) writer.write(statement);
+        }
     }
 
     private void updateLiteralElementUsage(TemplateBuffer generatedTemplate) {

@@ -22,7 +22,7 @@ public class Crawler {
     private CrawlStrategies.CrawlStrategy crawlStrategy = CrawlStrategies.FULL_CRAWL;
     private TemplateStats templateStats = new TemplateStats();
     private int statementLimit = -1;
-    private StatementWriter[] writers;
+    private StatementWriters.StatementWriter[] writers;
     private Map<String, Integer> mapLiteralElementsToUsage = new HashMap<>();
 
 
@@ -67,18 +67,18 @@ public class Crawler {
     /**
      * Sets the output writer for generated statements.
      *
-     * @param writer The StatementWriter to which completed statements should be sent.
+     * @param writer The StatementWriters.StatementWriter to which completed statements should be sent.
      */
-    public void setStatementWriter(StatementWriter writer) {
-        this.writers = new StatementWriter[]{writer};
+    public void setStatementWriter(StatementWriters.StatementWriter writer) {
+        this.writers = new StatementWriters.StatementWriter[]{writer};
     }
 
     /**
      * Sets multiple output writers for generated statements.
      *
-     * @param writers The StatementWriter objects to which completed statements should be sent.
+     * @param writers The StatementWriters.StatementWriter objects to which completed statements should be sent.
      */
-    public void setStatementWriters(StatementWriter... writers) {
+    public void setStatementWriters(StatementWriters.StatementWriter... writers) {
         this.writers = writers;
     }
 
@@ -124,7 +124,8 @@ public class Crawler {
 
     /**
      * Starts the crawler at the specified rule using the crawl strategy set in SetCrawlStrategy.
-     * As the crawler completes template statements, it sends them to the configured StatementWriter for output.
+     * As the crawler completes template statements, it sends them to the configured
+     * StatementWriters.StatementWriter for output.
      *
      * @param rule The grammar rule at which to start the crawl.
      */
@@ -137,7 +138,8 @@ public class Crawler {
 
         start();
 
-        for (StatementWriter writer : writers) writer.finished();
+        if (invalidStatementWriter != null) invalidStatementWriter.finished();
+        for (StatementWriters.StatementWriter writer : writers) writer.finished();
     }
 
     /**

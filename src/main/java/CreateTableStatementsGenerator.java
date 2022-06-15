@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import java.io.IOException;
 import java.util.*;
 
 public class CreateTableStatementsGenerator {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         Map<String, Rules.Rule> ruleMap = MySQLGrammarUtils.loadMySQLGrammarRules();
 
         Crawler crawler = new Crawler(ruleMap);
@@ -31,6 +30,7 @@ public class CreateTableStatementsGenerator {
 
         // Disabling these to limit crawler's output for CreateTable
         crawler.addRulesToSkip("partitionClause");    // TODO: Can we turn this back on?
+        crawler.addRulesToSkip("partitionOption");
 
         // We should add support for constraints and indexes, but that will require
         // knowledge of type information and table schema when generating statements
@@ -80,8 +80,8 @@ public class CreateTableStatementsGenerator {
         crawler.setCrawlStrategy(new CrawlStrategies.CoverageAwareCrawl(crawler));
         crawler.setStatementPrefix("CREATE ");
         crawler.setStatementWriters(
-                new StdOutStatementWriter(),
-                new SQLLogicProtoStatementWriter("sqllogic-test-create-table.proto"));
+                new StatementWriters.StdOutStatementWriter(),
+                new StatementWriters.SQLLogicProtoStatementWriter("sqllogic-test-create-table.proto"));
 
         crawler.startCrawl(ruleMap.get("createTable"));
         crawler.printCoverageStats();

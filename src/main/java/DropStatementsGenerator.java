@@ -27,7 +27,7 @@ public class DropStatementsGenerator {
                 "dotIdentifier",
                 "roleKeyword");
 
-        crawler.setStatementWriter(new StdOutStatementWriter());
+        crawler.setStatementWriter(new StatementWriters.StdOutStatementWriter());
         crawler.startCrawl(rule);
         crawler.printCoverageStats();
     }

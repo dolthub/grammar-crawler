@@ -26,7 +26,7 @@ public class Crawler {
     private Map<String, Integer> mapLiteralElementsToUsage = new HashMap<>();
     private StatementValidators.StatementValidator[] statementValidators;
     private StatementWriters.StatementWriter invalidStatementWriter;
-    private EarlyTerminator[] terminators;
+    private EarlyTerminators.EarlyTerminator[] terminators;
 
 
     /**
@@ -119,7 +119,7 @@ public class Crawler {
      *
      * @param terminators The early statement terminators this crawler should use
      */
-    public void setEarlyTerminators(EarlyTerminator... terminators) {
+    public void setEarlyTerminators(EarlyTerminators.EarlyTerminator... terminators) {
         this.terminators = terminators;
     }
 
@@ -380,7 +380,7 @@ public class Crawler {
         // early and aborting processing. This allows us to short circuit statements that are syntactically
         // valid, but we know ahead of time they are semantically invalid.
         if (terminators != null) {
-            for (EarlyTerminator terminator : terminators) {
+            for (EarlyTerminators.EarlyTerminator terminator : terminators) {
                 if (terminator.shouldTerminate(generatedTemplate)) {
                     currentContext.abort();
                     return;

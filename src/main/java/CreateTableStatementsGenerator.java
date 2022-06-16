@@ -78,7 +78,7 @@ public class CreateTableStatementsGenerator {
         crawler.addRulesToSkip("SRID_SYMBOL");
 
         crawler.setCrawlStrategy(new CrawlStrategies.CoverageAwareCrawl(crawler));
-        crawler.setEarlyTerminators(new MySQLCreateTableEarlyTerminator(crawler, 200));
+        crawler.setEarlyTerminators(new EarlyTerminators.MySQLCreateTableEarlyTerminator(crawler, 200));
         crawler.setStatementPrefix("CREATE ");
 
         StatementValidators.MySQLStatementValidator mySQLStatementValidator = StatementValidators.MySQLStatementValidator.NewMySQLStatementValidatorForSQLLogicTest();

@@ -206,6 +206,7 @@ public class Crawler {
         System.out.println();
 
         if (unusedElements.size() > 0) {
+            Collections.sort(unusedElements);
             System.out.println("Unused Literal Elements:");
             for (String unusedElement : unusedElements) {
                 System.out.println(" - " + unusedElement);

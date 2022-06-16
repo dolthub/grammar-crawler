@@ -26,6 +26,7 @@ public class Crawler {
     private Map<String, Integer> mapLiteralElementsToUsage = new HashMap<>();
     private StatementValidators.StatementValidator[] statementValidators;
     private StatementWriters.StatementWriter invalidStatementWriter;
+    private EarlyTerminator[] terminators;
 
 
     /**
@@ -110,6 +111,16 @@ public class Crawler {
      */
     public void setInvalidStatementWriter(StatementWriters.StatementWriter writer) {
         this.invalidStatementWriter = writer;
+    }
+
+    /**
+     * Sets the optional early statement terminators for this crawler. These terminators allow callers to optimize
+     * the crawl by terminating paths early and preventing the crawler from
+     *
+     * @param terminators The early statement terminators this crawler should use
+     */
+    public void setEarlyTerminators(EarlyTerminator... terminators) {
+        this.terminators = terminators;
     }
 
     /**
@@ -365,6 +376,18 @@ public class Crawler {
         Rules.Element element = currentContext.elementToProcess;
         TemplateBuffer generatedTemplate = currentContext.generatedTemplate;
 
+        // Instead of churning through every permutation, we optimize by detecting known invalid patterns
+        // early and aborting processing. This allows us to short circuit statements that are syntactically
+        // valid, but we know ahead of time they are semantically invalid.
+        if (terminators != null) {
+            for (EarlyTerminator terminator : terminators) {
+                if (terminator.shouldTerminate(generatedTemplate)) {
+                    currentContext.abort();
+                    return;
+                }
+            }
+        }
+
         if (element.isOptional()) {
             if (!currentContext.includeOptional) {
                 // Here is where we fork off another separate crawler thread, including its own buffer to track its unique output
@@ -400,7 +423,7 @@ public class Crawler {
 
             boolean noChoiceSelected = true;
             for (Rules.Element e : choice.choices) {
-                if (crawlStrategy.shouldCrawl(element) == false) continue;
+                if (crawlStrategy.shouldCrawl(e) == false) continue;
 
                 if (noChoiceSelected) {
                     // The first choice uses the current template buffer.
@@ -468,7 +491,7 @@ public class Crawler {
                     // Check the crawl strategy after we've already scheduled the first alternative to be
                     // crawled to ensure at least one gets selected. Ideally the crawl strategy would
                     // be more intelligent and ensure at least one alternative is chosen.
-                    if (crawlStrategy.shouldCrawl(element) == false) continue;
+                    if (crawlStrategy.shouldCrawl(alternative.elements.get(0)) == false) continue;
 
                     CrawlContext newContext = forkCrawl(currentContext, alternative.elements.get(0));
                     newContext.parentPath.addAll(currentContext.parentPath);

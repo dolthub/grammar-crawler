@@ -98,7 +98,7 @@ The crawler supports three crawl strategies:
 * **Full Crawl** – every path through the grammar graph will be explored, with some caveats (e.g. cycles are detected
   and skipped). This mode works well for small grammars or small subsets of a grammar, but can quickly produce a LOT of
   generated statement templates.
-* **Random Crawl** – this naieve random crawl strategy will randomly select whether or not to continue crawling a path
+* **Random Crawl** – this naive random crawl strategy will randomly select whether or not to continue crawling a path
   in the grammar graph. This is useful when you have a large solution space and only want a sample of generated
   statements.
 * **Coverage-Aware Crawl** – this crawl strategy uses information from the crawler on which literal elements have been

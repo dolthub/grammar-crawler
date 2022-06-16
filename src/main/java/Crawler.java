@@ -24,8 +24,8 @@ public class Crawler {
     private int statementLimit = -1;
     private StatementWriters.StatementWriter[] writers;
     private Map<String, Integer> mapLiteralElementsToUsage = new HashMap<>();
-    private StatementValidators.StatementValidator statementValidator = null;
-    private StatementWriters.StatementWriter invalidStatementWriter = null;
+    private StatementValidators.StatementValidator[] statementValidators;
+    private StatementWriters.StatementWriter invalidStatementWriter;
 
 
     /**
@@ -90,7 +90,16 @@ public class Crawler {
      * @param validator The optional validator to use when testing/validating a generated statement.
      */
     public void setStatementValidator(StatementValidators.StatementValidator validator) {
-        this.statementValidator = validator;
+        this.statementValidators = new StatementValidators.StatementValidator[]{validator};
+    }
+
+    /**
+     * Sets the optional validators that will be run on generated statements.
+     *
+     * @param validators The optional validators to use when testing/validating a generated statement.
+     */
+    public void setStatementValidators(StatementValidators.StatementValidator... validators) {
+        this.statementValidators = validators;
     }
 
     /**
@@ -319,16 +328,24 @@ public class Crawler {
     private void statementCompleted(TemplateBuffer generatedTemplate) {
         String statement = StatementReifier.reifyStatement(prefix, generatedTemplate);
 
-        StatementValidators.StatementValidator validator = statementValidator != null
-                ? statementValidator : new StatementValidators.NoOpStatementValidator();
+        StatementValidators.StatementValidator[] validators = statementValidators != null
+                ? statementValidators : new StatementValidators.StatementValidator[]{};
 
-        if (validator.validateStatement(statement)) {
+        boolean valid = true;
+        for (StatementValidators.StatementValidator validator : validators) {
+            if (validator.validateStatement(statement) == false) {
+                valid = false;
+                break;
+            }
+        }
+
+        if (valid) {
             for (StatementWriters.StatementWriter writer : writers) writer.write(statement);
 
             templateStats.completedTemplates++;
             updateLiteralElementUsage(generatedTemplate);
         } else {
-            for (StatementWriters.StatementWriter writer : writers) writer.write(statement);
+            if (invalidStatementWriter != null) invalidStatementWriter.write(statement);
         }
     }
 
@@ -472,7 +489,7 @@ public class Crawler {
         }
 
         // Queue up the next element to be processed from our stack
-        if (currentContext.futureElements.isEmpty()) {
+        if (currentContext.futureElements.isEmpty() && currentContext.isAborted() == false) {
             // At this point, we know a template should be fully complete
             statementCompleted(currentContext.generatedTemplate);
         } else {

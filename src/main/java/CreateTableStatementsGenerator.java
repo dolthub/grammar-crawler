@@ -78,7 +78,17 @@ public class CreateTableStatementsGenerator {
         crawler.addRulesToSkip("SRID_SYMBOL");
 
         crawler.setCrawlStrategy(new CrawlStrategies.CoverageAwareCrawl(crawler));
+        crawler.setEarlyTerminators(new MySQLCreateTableEarlyTerminator(crawler, 200));
         crawler.setStatementPrefix("CREATE ");
+
+        StatementValidators.MySQLStatementValidator mySQLStatementValidator = StatementValidators.MySQLStatementValidator.NewMySQLStatementValidatorForSQLLogicTest();
+        if (mySQLStatementValidator.canConnect()) {
+            crawler.setStatementValidators(mySQLStatementValidator);
+            crawler.setInvalidStatementWriter(new StatementWriters.FileStatementWriter("invalid-statements.txt"));
+        } else {
+            System.err.println("Unable to connect to MySQL server to validate generated statements.");
+        }
+
         crawler.setStatementWriters(
                 new StatementWriters.StdOutStatementWriter(),
                 new StatementWriters.SQLLogicProtoStatementWriter("sqllogic-test-create-table.proto"));

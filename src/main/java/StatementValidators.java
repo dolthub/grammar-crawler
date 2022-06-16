@@ -54,6 +54,16 @@ public class StatementValidators {
         }
 
         /**
+         * Returns true if this validator can connect to a MySQL server using the configuration
+         * provided when this object was created.
+         *
+         * @return True if and only if this validator can connect to the configured MySQL server.
+         */
+        public boolean canConnect() {
+            return validateStatement("show tables");
+        }
+
+        /**
          * Returns a new MySQLStatementValidator, configured with the standard SQLLogicTest connection settings.
          *
          * @return A new MySQLStatementValidator, configured with the standard SQLLogicTest connection settings.
